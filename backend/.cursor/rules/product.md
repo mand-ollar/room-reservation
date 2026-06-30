@@ -51,7 +51,7 @@
 
 - 삭제 정책: **하드 삭제 + `ON DELETE RESTRICT`**
   - 하위 `Space`가 있는 `Building` 삭제 → 거부(409)
-  - 예약이 걸린 `Space` 삭제 → DB FK(RESTRICT)로 보호 (애플리케이션 사전 검사는 추후 연결)
+  - 예약이 걸린 `Space` 삭제 → `SpaceInUseError`(409) + DB FK(RESTRICT) 이중 보호
 - 이름 유니크: `Building.name` 전역 유니크, `Space`는 `UNIQUE(building_id, name)`
 - 초기 데이터: 시드 없이 빈 상태로 시작, 관리자가 CRUD로 등록
 - 목록 조회는 공개 (예약 폼에서 선택해야 하므로)
@@ -92,7 +92,7 @@ UI 흐름: **building 선택 → space 선택 → 해당 space 예약 목록**. 
 | GET | `/buildings` | 공개 | building 목록 |
 | GET | `/spaces?building_id=` | 공개 | 선택한 building의 space 목록 |
 | GET | `/reservations/{space_id}` | 공개 | 선택한 space의 예약 목록 (`?status=` 필터). space 없으면 404 |
-| GET | `/reservations` | 공개 | 전체 예약 (`?status=`, `?space_id=` 필터) |
+| GET | `/reservations` | 공개 | 전체 예약 (`?status=` 필터) |
 | GET | `/reservations/me` | user | 본인 예약 목록 |
 
 ## 구현 상태
