@@ -81,8 +81,12 @@ def get_list_spaces_use_case(
 
 def get_delete_space_use_case(
     space_repository: Annotated[SpaceRepository, Depends(get_space_repository)],
+    reservation_repository: Annotated[ReservationRepository, Depends(get_reservation_repository)],
 ) -> DeleteSpaceUseCase:
-    return DeleteSpaceUseCase(space_repository=space_repository)
+    return DeleteSpaceUseCase(
+        space_repository=space_repository,
+        reservation_repository=reservation_repository,
+    )
 
 
 def get_create_reservation_use_case(

@@ -33,6 +33,7 @@ from app.reservation.domain.exceptions import (
     ReservationAccessDeniedError,
     ReservationConflictError,
     ReservationNotFoundError,
+    SpaceInUseError,
     SpaceNotFoundError,
 )
 from app.reservation.domain.value_objects import ReservationStatus
@@ -161,6 +162,8 @@ async def delete_space(
         await use_case.execute(space_id=_parse_ulid(value=space_id))
     except SpaceNotFoundError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
+    except SpaceInUseError as error:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error
 
 
 @router.post(
@@ -195,10 +198,8 @@ async def create_reservation(
 async def list_reservations(
     use_case: Annotated[ListReservationsUseCase, Depends(get_list_reservations_use_case)],
     status_filter: Annotated[ReservationStatus | None, Query(alias="status")] = None,
-    space_id: Annotated[str | None, Query()] = None,
 ):
-    parsed_space_id: ULID | None = _parse_ulid(value=space_id) if space_id is not None else None
-    reservations: list[Reservation] = await use_case.execute(status=status_filter, space_id=parsed_space_id)
+    reservations: list[Reservation] = await use_case.execute(status=status_filter)
     return [ReservationResponse.from_entity(reservation=reservation) for reservation in reservations]
 
 
