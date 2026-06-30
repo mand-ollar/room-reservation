@@ -13,6 +13,7 @@
 - `Building` / `Space` / `Reservation`은 하나의 바운디드 컨텍스트로 보고 **`app/reservation/` 단일 모듈**에 묶는다.
 - 단, 셋은 각각 **독립 애그리거트 루트** — 각자 레포지토리를 가지며 서로는 **ID로만 참조**(객체 중첩 금지).
   - `Reservation`은 `user_id`, `space_id`를 ULID로 보유. building/space 상세가 응답에 필요하면 read 단계(조립/조인)에서 푼다.
+- 도메인 예외는 `domain/exceptions/` 패키지 — 예외 클래스별 파일 + `__init__.py`에서 재노출.
 
 ## 행위자
 
@@ -37,7 +38,7 @@
 - 이름+전화번호로 로그인 ✅
 - 공간 예약 신청 (상태: PENDING으로 생성) ✅
 - 본인 예약 조회 ✅ / 변경(시간) ✅ / 취소 ✅
-- 예약 현황 조회 (로그인 불필요) ✅
+- 예약 현황 조회 (로그인 불필요) ✅ — building 선택 → space 선택 후 해당 공간 예약만 조회
 
 관리자
 - 비밀번호 로그인 ✅
@@ -82,9 +83,21 @@
   ```
 - **구간 의미**: 반열린 `[start, end)` — 끝 시각 == 다음 시작 시각이면 겹침 아님(연속 예약 허용).
 
+### 조회 API (예약 현황)
+
+UI 흐름: **building 선택 → space 선택 → 해당 space 예약 목록**. `Space`에 `building_id`가 있으므로 예약 조회 API에는 **space_id만** 넘긴다.
+
+| 메서드 | 경로 | 권한 | 용도 |
+|---|---|---|---|
+| GET | `/buildings` | 공개 | building 목록 |
+| GET | `/spaces?building_id=` | 공개 | 선택한 building의 space 목록 |
+| GET | `/reservations/{space_id}` | 공개 | 선택한 space의 예약 목록 (`?status=` 필터). space 없으면 404 |
+| GET | `/reservations` | 공개 | 전체 예약 (`?status=`, `?space_id=` 필터) |
+| GET | `/reservations/me` | user | 본인 예약 목록 |
+
 ## 구현 상태
 
 - 완료: 인증/유저 도메인, 인프라(Docker, async SQLAlchemy, Alembic)
 - 완료: building / space 도메인 (관리자 CRUD + 공개 조회)
-- 완료: reservation 도메인 — 생성/조회/시간변경/취소 + 관리자 승인/거부, 동시성(EXCLUDE) 확정·검증
-- 예정: 관리자 예약 조정·취소, 예약 현황 조회 시 개인정보 노출 범위 정리
+- 완료: reservation 도메인 — 생성/조회/시간변경/취소 + 관리자 승인/거부, 동시성(EXCLUDE) 확정·검증, space별 공개 조회(`GET /reservations/{space_id}`)
+- 예정: 관리자 예약 조정·취소, 공개 조회 응답의 개인정보 노출 범위 정리
