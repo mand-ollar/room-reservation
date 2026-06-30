@@ -4,7 +4,7 @@ from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.reservation.domain.value_objects.ReservationStatus import ReservationStatus
+from app.reservation.domain.value_objects import ReservationStatus
 from core.db.session import Base
 
 

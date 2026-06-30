@@ -5,7 +5,7 @@ from ulid import ULID
 
 from app.user.application.outbound.repositories.UserRepository import UserRepository
 from app.user.application.use_cases.token_pair import TokenPair
-from app.user.domain.entities.User import User
+from app.user.domain.entities import User
 from app.user.domain.exceptions import InvalidCredentialsError, UserNotFoundError
 from core.security.jwt import create_access_token, create_refresh_token, decode_token
 from core.security.roles import AuthRole

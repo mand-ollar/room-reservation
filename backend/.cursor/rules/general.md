@@ -87,6 +87,37 @@ response = client.post("/api", payload)
   ```
 - **Type checking:** `mypy .` — strict mode.
 
+### Packages (`__init__.py`)
+
+Every Python package directory must have an `__init__.py`.
+
+When a package exposes multiple public symbols (domain exceptions, entities, value objects, etc.):
+- One class (or type) per file, named after the symbol (e.g. `UserNotFoundError.py`).
+- Re-export from the package `__init__.py` and declare `__all__`.
+
+```python
+# app/user/domain/exceptions/__init__.py
+from app.user.domain.exceptions.InvalidCredentialsError import InvalidCredentialsError
+from app.user.domain.exceptions.UserDomainError import UserDomainError
+from app.user.domain.exceptions.UserNotFoundError import UserNotFoundError
+
+__all__ = [
+    "InvalidCredentialsError",
+    "UserDomainError",
+    "UserNotFoundError",
+]
+```
+
+Consumers import from the package, not the individual module file:
+
+```python
+# correct
+from app.user.domain.exceptions import InvalidCredentialsError
+
+# never
+from app.user.domain.exceptions.InvalidCredentialsError import InvalidCredentialsError
+```
+
 ### FastAPI
 
 Variable annotations always explicit. Route handlers don't use return type — use `response_model` instead.

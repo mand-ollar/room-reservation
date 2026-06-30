@@ -1,7 +1,7 @@
 from ulid import ULID
 
 from app.reservation.application.outbound.repositories.ReservationRepository import ReservationRepository
-from app.reservation.domain.entities.Reservation import Reservation
+from app.reservation.domain.entities import Reservation
 from app.reservation.domain.exceptions import ReservationAccessDeniedError, ReservationNotFoundError
 
 

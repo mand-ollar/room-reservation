@@ -6,7 +6,7 @@ from jose import JWTError
 from ulid import ULID
 
 from app.user.application.outbound.repositories.UserRepository import UserRepository
-from app.user.domain.entities.User import User
+from app.user.domain.entities import User
 from core.security.jwt import decode_token
 from core.security.roles import AuthRole
 from di.repository import get_user_repository

@@ -2,9 +2,9 @@ from ulid import ULID
 
 from app.reservation.application.outbound.repositories.ReservationRepository import ReservationRepository
 from app.reservation.application.outbound.repositories.SpaceRepository import SpaceRepository
-from app.reservation.domain.entities.Reservation import Reservation
+from app.reservation.domain.entities import Reservation
 from app.reservation.domain.exceptions import SpaceNotFoundError
-from app.reservation.domain.value_objects.ReservationStatus import ReservationStatus
+from app.reservation.domain.value_objects import ReservationStatus
 
 
 class ListReservationsUseCase:

@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 from app.reservation.application.outbound.repositories.BuildingRepository import BuildingRepository
-from app.reservation.domain.entities.Building import Building
+from app.reservation.domain.entities import Building
 from app.reservation.domain.exceptions import DuplicateBuildingNameError
 
 

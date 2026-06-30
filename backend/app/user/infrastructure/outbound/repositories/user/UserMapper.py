@@ -1,6 +1,6 @@
 from ulid import ULID
 
-from app.user.domain.entities.User import User
+from app.user.domain.entities import User
 from app.user.infrastructure.outbound.repositories.user.UserAlchemyEntity import UserAlchemyEntity
 
 

@@ -22,9 +22,7 @@ from app.reservation.application.use_cases.RescheduleReservation import (
     RescheduleReservationCommand,
     RescheduleReservationUseCase,
 )
-from app.reservation.domain.entities.Building import Building
-from app.reservation.domain.entities.Reservation import Reservation
-from app.reservation.domain.entities.Space import Space
+from app.reservation.domain.entities import Building, Reservation, Space
 from app.reservation.domain.exceptions import (
     BuildingInUseError,
     BuildingNotFoundError,
@@ -37,7 +35,7 @@ from app.reservation.domain.exceptions import (
     ReservationNotFoundError,
     SpaceNotFoundError,
 )
-from app.reservation.domain.value_objects.ReservationStatus import ReservationStatus
+from app.reservation.domain.value_objects import ReservationStatus
 from app.reservation.infrastructure.inbound.api.messages.requests import (
     CreateBuildingRequest,
     CreateReservationRequest,
@@ -49,7 +47,7 @@ from app.reservation.infrastructure.inbound.api.messages.responses import (
     ReservationResponse,
     SpaceResponse,
 )
-from app.user.domain.entities.User import User
+from app.user.domain.entities import User
 from di.auth import get_current_user, require_admin
 from di.usecase import (
     get_approve_reservation_use_case,

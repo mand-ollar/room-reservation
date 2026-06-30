@@ -3,8 +3,7 @@ from ulid import ULID
 
 from app.reservation.application.outbound.repositories.BuildingRepository import BuildingRepository
 from app.reservation.application.outbound.repositories.SpaceRepository import SpaceRepository
-from app.reservation.domain.entities.Building import Building
-from app.reservation.domain.entities.Space import Space
+from app.reservation.domain.entities import Building, Space
 from app.reservation.domain.exceptions import BuildingNotFoundError, DuplicateSpaceNameError
 
 

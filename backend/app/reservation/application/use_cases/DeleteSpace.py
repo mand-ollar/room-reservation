@@ -1,7 +1,7 @@
 from ulid import ULID
 
 from app.reservation.application.outbound.repositories.SpaceRepository import SpaceRepository
-from app.reservation.domain.entities.Space import Space
+from app.reservation.domain.entities import Space
 from app.reservation.domain.exceptions import SpaceNotFoundError
 
 

@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 
 from ulid import ULID
 
-from app.reservation.domain.entities.Reservation import Reservation
-from app.reservation.domain.value_objects.ReservationStatus import ReservationStatus
+from app.reservation.domain.entities import Reservation
+from app.reservation.domain.value_objects import ReservationStatus
 
 
 class ReservationRepository(ABC):

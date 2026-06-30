@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from app.user.domain.entities.User import User
+from app.user.domain.entities import User
 
 
 class UserResponse(BaseModel):

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from ulid import ULID
 
-from app.user.domain.entities.User import User
+from app.user.domain.entities import User
 
 
 class UserRepository(ABC):

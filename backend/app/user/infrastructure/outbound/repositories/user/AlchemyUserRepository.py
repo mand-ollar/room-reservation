@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ulid import ULID
 
 from app.user.application.outbound.repositories.UserRepository import UserRepository
-from app.user.domain.entities.User import User
+from app.user.domain.entities import User
 from app.user.infrastructure.outbound.repositories.user.UserAlchemyEntity import UserAlchemyEntity
 from app.user.infrastructure.outbound.repositories.user.UserMapper import UserMapper
 

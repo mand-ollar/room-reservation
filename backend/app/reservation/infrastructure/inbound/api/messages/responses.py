@@ -2,10 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from app.reservation.domain.entities.Building import Building
-from app.reservation.domain.entities.Reservation import Reservation
-from app.reservation.domain.entities.Space import Space
-from app.reservation.domain.value_objects.ReservationStatus import ReservationStatus
+from app.reservation.domain.entities import Building, Reservation, Space
+from app.reservation.domain.value_objects import ReservationStatus
 
 
 class BuildingResponse(BaseModel):

@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ulid import ULID
 
 from app.reservation.application.outbound.repositories.BuildingRepository import BuildingRepository
-from app.reservation.domain.entities.Building import Building
+from app.reservation.domain.entities import Building
 from app.reservation.infrastructure.outbound.repositories.building.BuildingAlchemyEntity import BuildingAlchemyEntity
 from app.reservation.infrastructure.outbound.repositories.building.BuildingMapper import BuildingMapper
 

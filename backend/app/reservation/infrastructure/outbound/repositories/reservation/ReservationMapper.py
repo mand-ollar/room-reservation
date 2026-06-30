@@ -1,6 +1,6 @@
 from ulid import ULID
 
-from app.reservation.domain.entities.Reservation import Reservation
+from app.reservation.domain.entities import Reservation
 from app.reservation.infrastructure.outbound.repositories.reservation.ReservationAlchemyEntity import (
     ReservationAlchemyEntity,
 )

@@ -6,7 +6,7 @@ from app.user.application.use_cases.AdminLogin import AdminLoginCommand, AdminLo
 from app.user.application.use_cases.RefreshToken import RefreshTokenUseCase
 from app.user.application.use_cases.token_pair import TokenPair
 from app.user.application.use_cases.UserLogin import UserLoginCommand, UserLoginUseCase
-from app.user.domain.entities.User import User
+from app.user.domain.entities import User
 from app.user.domain.exceptions import InvalidCredentialsError, UserNotFoundError
 from app.user.infrastructure.inbound.api.messages.requests import (
     AdminLoginRequest,

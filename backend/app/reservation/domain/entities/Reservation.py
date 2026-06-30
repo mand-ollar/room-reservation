@@ -7,7 +7,7 @@ from app.reservation.domain.exceptions import (
     InvalidReservationPeriodError,
     InvalidReservationTransitionError,
 )
-from app.reservation.domain.value_objects.ReservationStatus import ReservationStatus
+from app.reservation.domain.value_objects import ReservationStatus
 
 
 class Reservation(BaseModel):
