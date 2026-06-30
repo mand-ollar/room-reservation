@@ -26,6 +26,15 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # Import all AlchemyEntity modules below so autogenerate can detect them.
+from app.reservation.infrastructure.outbound.repositories.building.BuildingAlchemyEntity import (  # noqa: E402, F401
+    BuildingAlchemyEntity,
+)
+from app.reservation.infrastructure.outbound.repositories.reservation.ReservationAlchemyEntity import (  # noqa: E402, F401
+    ReservationAlchemyEntity,
+)
+from app.reservation.infrastructure.outbound.repositories.space.SpaceAlchemyEntity import (  # noqa: E402, F401
+    SpaceAlchemyEntity,
+)
 from app.user.infrastructure.outbound.repositories.user.UserAlchemyEntity import (  # noqa: E402, F401
     UserAlchemyEntity,
 )
