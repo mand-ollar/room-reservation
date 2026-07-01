@@ -207,3 +207,6 @@ poetry.toml
 pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,macos
+
+# Local convenience scripts (not committed)
+backend/scripts/seed_buildings_spaces.py
