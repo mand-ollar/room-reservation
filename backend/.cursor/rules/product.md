@@ -44,8 +44,8 @@
 
 관리자
 - 비밀번호 로그인 ✅
-- 건물/공간 등록·삭제 ✅
-- 전체 예약 조회 (상태 필터) ✅
+- 건물/공간 등록·수정·삭제 ✅
+- 전체 예약 조회 (상태 필터) ✅ — `GET /admin/reservations` (`ReservationResponse` 전체 필드)
 - 예약 승인 / 거부 ✅
 - 예약 조정·취소 (관리자) ✅ — `PATCH/POST .../cancel` 동일 경로, ADMIN 토큰으로 소유권 검사 생략
 
@@ -57,7 +57,8 @@
 - 이름 유니크:
   - `Building`: `names->>'ko'`, `names->>'en'` 각각 전역 유니크 (expression index)
   - `Space`: `(building_id, names->>'ko')`, `(building_id, names->>'en')` 각각 유니크
-- 초기 데이터: 시드 없이 빈 상태로 시작, 관리자가 CRUD로 등록 (운영 시 본당·비전랜드·드림랜드 및 공간 17개 등록됨)
+- `names` JSONB 검증 (CHECK): `ko`/`en` 키 필수, string 타입, 공백만 불가
+- 초기 데이터: 시드 없이 빈 상태로 시작, 관리자가 CRUD로 등록. 로컬 편의 시드는 `scripts/seed_buildings_spaces.py` (gitignored)
 - 목록 조회는 공개 (예약 폼에서 선택해야 하므로). API 응답에 `names` 객체 전체 포함 — 프론트가 locale에 맞게 표시.
 
 ## 예약 규칙
@@ -98,6 +99,14 @@ UI 흐름: **building 선택 → space 선택 → 해당 space 예약 목록**. 
 | GET | `/reservations/{space_id}` | 공개 | 선택한 space의 예약 목록 (`?status=` 필터). space 없으면 404. 응답: `ReservationPublicResponse` |
 | GET | `/reservations` | 공개 | 전체 예약 (`?status=` 필터). 응답: `ReservationPublicResponse` |
 | GET | `/reservations/me` | user | 본인 예약 목록. 응답: `ReservationResponse` (전체 필드) |
+| GET | `/admin/reservations` | admin | 전체 예약 (`?status=`, `?space_id=` 필터). 응답: `ReservationResponse` |
+
+### Building / Space API
+
+| 메서드 | 경로 | 권한 | 용도 |
+|---|---|---|---|
+| PATCH | `/buildings/{building_id}` | admin | 건물 이름 수정 (`names`) |
+| PATCH | `/spaces/{space_id}` | admin | 공간 이름·층 수정 (`names`, `floor`) |
 
 ### Building / Space API 응답
 
@@ -124,5 +133,6 @@ UI 흐름: **building 선택 → space 선택 → 해당 space 예약 목록**. 
 ## 구현 상태
 
 - 완료: 인증/유저 도메인, 인프라(Docker, async SQLAlchemy, Alembic)
-- 완료: building / space 도메인 (관리자 CRUD + 공개 조회, `names` JSONB / `floor`)
+- 완료: building / space 도메인 (관리자 CRUD + PATCH + 공개 조회, `names` JSONB / `floor`)
+- 완료: CORS (`.env` `CORS_ORIGINS`, 쉼표 구분)
 - 완료: reservation 도메인 — 생성/조회/시간변경/취소 + 관리자 승인/거부/조정·취소, 동시성(EXCLUDE) 확정·검증, space별 공개 조회(`GET /reservations/{space_id}`), 공개 조회 응답 개인정보 최소화(`ReservationPublicResponse`)
