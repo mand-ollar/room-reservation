@@ -19,6 +19,14 @@ class AlchemyUserRepository(UserRepository):
             return None
         return UserMapper.to_domain_entity(alchemy_entity=entity)
 
+    async def find_by_ids(self, ids: list[ULID]) -> list[User]:
+        if not ids:
+            return []
+        id_strings: list[str] = [str(user_id) for user_id in ids]
+        stmt: Select[tuple[UserAlchemyEntity]] = select(UserAlchemyEntity).where(UserAlchemyEntity.id.in_(id_strings))
+        entities: list[UserAlchemyEntity] = list((await self.session.execute(stmt)).scalars().all())
+        return [UserMapper.to_domain_entity(alchemy_entity=entity) for entity in entities]
+
     async def find_by_phone(self, phone: str) -> User | None:
         stmt: Select[tuple[UserAlchemyEntity]] = select(UserAlchemyEntity).where(UserAlchemyEntity.phone == phone)
         entity: UserAlchemyEntity | None = (await self.session.execute(stmt)).scalar_one_or_none()

@@ -20,7 +20,10 @@ class AlchemySpaceRepository(SpaceRepository):
         return SpaceMapper.to_domain_entity(alchemy_entity=entity)
 
     async def find_all(self) -> list[Space]:
-        stmt: Select[tuple[SpaceAlchemyEntity]] = select(SpaceAlchemyEntity).order_by(SpaceAlchemyEntity.name)
+        stmt: Select[tuple[SpaceAlchemyEntity]] = select(SpaceAlchemyEntity).order_by(
+            SpaceAlchemyEntity.floor,
+            SpaceAlchemyEntity.name_ko,
+        )
         entities: list[SpaceAlchemyEntity] = list((await self.session.execute(stmt)).scalars().all())
         return [SpaceMapper.to_domain_entity(alchemy_entity=entity) for entity in entities]
 
@@ -28,15 +31,25 @@ class AlchemySpaceRepository(SpaceRepository):
         stmt: Select[tuple[SpaceAlchemyEntity]] = (
             select(SpaceAlchemyEntity)
             .where(SpaceAlchemyEntity.building_id == str(building_id))
-            .order_by(SpaceAlchemyEntity.name)
+            .order_by(SpaceAlchemyEntity.floor, SpaceAlchemyEntity.name_ko)
         )
         entities: list[SpaceAlchemyEntity] = list((await self.session.execute(stmt)).scalars().all())
         return [SpaceMapper.to_domain_entity(alchemy_entity=entity) for entity in entities]
 
-    async def find_by_building_id_and_name(self, building_id: ULID, name: str) -> Space | None:
+    async def find_by_building_id_and_name_ko(self, building_id: ULID, name_ko: str) -> Space | None:
         stmt: Select[tuple[SpaceAlchemyEntity]] = select(SpaceAlchemyEntity).where(
             SpaceAlchemyEntity.building_id == str(building_id),
-            SpaceAlchemyEntity.name == name,
+            SpaceAlchemyEntity.name_ko == name_ko,
+        )
+        entity: SpaceAlchemyEntity | None = (await self.session.execute(stmt)).scalar_one_or_none()
+        if entity is None:
+            return None
+        return SpaceMapper.to_domain_entity(alchemy_entity=entity)
+
+    async def find_by_building_id_and_name_en(self, building_id: ULID, name_en: str) -> Space | None:
+        stmt: Select[tuple[SpaceAlchemyEntity]] = select(SpaceAlchemyEntity).where(
+            SpaceAlchemyEntity.building_id == str(building_id),
+            SpaceAlchemyEntity.name_en == name_en,
         )
         entity: SpaceAlchemyEntity | None = (await self.session.execute(stmt)).scalar_one_or_none()
         if entity is None:

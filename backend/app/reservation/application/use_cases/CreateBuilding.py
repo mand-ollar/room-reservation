@@ -6,7 +6,8 @@ from app.reservation.domain.exceptions import DuplicateBuildingNameError
 
 
 class CreateBuildingCommand(BaseModel):
-    name: str
+    name_ko: str
+    name_en: str
 
 
 class CreateBuildingUseCase:
@@ -14,7 +15,14 @@ class CreateBuildingUseCase:
         self.building_repository: BuildingRepository = building_repository
 
     async def execute(self, command: CreateBuildingCommand) -> Building:
-        existing: Building | None = await self.building_repository.find_by_name(name=command.name)
-        if existing is not None:
+        existing_ko: Building | None = await self.building_repository.find_by_name_ko(name_ko=command.name_ko)
+        if existing_ko is not None:
             raise DuplicateBuildingNameError()
-        return await self.building_repository.save(entity=Building.create(name=command.name))
+
+        existing_en: Building | None = await self.building_repository.find_by_name_en(name_en=command.name_en)
+        if existing_en is not None:
+            raise DuplicateBuildingNameError()
+
+        return await self.building_repository.save(
+            entity=Building.create(name_ko=command.name_ko, name_en=command.name_en),
+        )

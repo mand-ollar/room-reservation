@@ -10,9 +10,10 @@ from app.reservation.domain.exceptions import ReservationAccessDeniedError, Rese
 
 class RescheduleReservationCommand(BaseModel):
     reservation_id: ULID
-    user_id: ULID
+    user_id: ULID | None = None
     start_at: datetime
     end_at: datetime
+    as_admin: bool = False
 
 
 class RescheduleReservationUseCase:
@@ -23,8 +24,11 @@ class RescheduleReservationUseCase:
         reservation: Reservation | None = await self.reservation_repository.find_by_id(id=command.reservation_id)
         if reservation is None:
             raise ReservationNotFoundError()
-        if reservation.user_id != command.user_id:
-            raise ReservationAccessDeniedError()
+        if not command.as_admin:
+            if command.user_id is None:
+                raise ReservationAccessDeniedError()
+            if reservation.user_id != command.user_id:
+                raise ReservationAccessDeniedError()
 
         rescheduled: Reservation = reservation.reschedule(start_at=command.start_at, end_at=command.end_at)
         return await self.reservation_repository.update(entity=rescheduled)

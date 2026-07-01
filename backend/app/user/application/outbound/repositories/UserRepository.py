@@ -10,6 +10,9 @@ class UserRepository(ABC):
     async def find_by_id(self, id: ULID) -> User | None: ...
 
     @abstractmethod
+    async def find_by_ids(self, ids: list[ULID]) -> list[User]: ...
+
+    @abstractmethod
     async def find_by_phone(self, phone: str) -> User | None: ...
 
     @abstractmethod

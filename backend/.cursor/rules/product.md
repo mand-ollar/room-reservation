@@ -7,6 +7,8 @@
 - `User` (이름, 전화번호) ──< `Reservation` : 등록자(누가 예약했는지 식별)
 - `Building` (본당 / 비전랜드 / 드림랜드) ──< `Space` : 건물 1 : 공간 N
 - `Space` (중등부 / 고등부 / 초등부 ...) ──< `Reservation` : 어떤 공간 예약인지
+- `Building` / `Space` 이름은 **`name_ko`(한국어) + `name_en`(영어 라벨)** 분리 저장. UI locale에 맞게 클라이언트가 선택.
+- `Space`는 **`floor`(층, int)** 별도 보유 — 정렬·필터용. 이름에 포함된 층 표기와 중복될 수 있으나 canonical 값은 `floor`.
 - 관리자(Admin)는 엔티티가 아님 — 단일 비밀번호로만 존재, 모든 도메인을 조정
 
 ### 모듈 구조
@@ -23,7 +25,7 @@
 ## 인증 규칙
 
 - 예약/건물/공간 조회: 로그인 없이 공개
-- 예약 생성/변경/취소: 로그인 필요 (본인 예약만)
+- 예약 생성/변경/취소: 로그인 필요 (본인 예약만; 관리자는 모든 예약 변경·취소 가능)
 - 건물/공간 등록·삭제, 예약 승인/거부: 관리자 권한 필요
 - 사용자 로그인(이름+전화번호):
   - 전화번호 없음 → 신규 생성
@@ -45,16 +47,18 @@
 - 건물/공간 등록·삭제 ✅
 - 전체 예약 조회 (상태 필터) ✅
 - 예약 승인 / 거부 ✅
-- 예약 조정·취소 (관리자) — 예정
+- 예약 조정·취소 (관리자) ✅ — `PATCH/POST .../cancel` 동일 경로, ADMIN 토큰으로 소유권 검사 생략
 
 ## 건물 / 공간 규칙
 
 - 삭제 정책: **하드 삭제 + `ON DELETE RESTRICT`**
   - 하위 `Space`가 있는 `Building` 삭제 → 거부(409)
   - 예약이 걸린 `Space` 삭제 → `SpaceInUseError`(409) + DB FK(RESTRICT) 이중 보호
-- 이름 유니크: `Building.name` 전역 유니크, `Space`는 `UNIQUE(building_id, name)`
-- 초기 데이터: 시드 없이 빈 상태로 시작, 관리자가 CRUD로 등록
-- 목록 조회는 공개 (예약 폼에서 선택해야 하므로)
+- 이름 유니크:
+  - `Building`: `name_ko` 전역 유니크, `name_en` 전역 유니크
+  - `Space`: `UNIQUE(building_id, name_ko)`, `UNIQUE(building_id, name_en)`
+- 초기 데이터: 시드 없이 빈 상태로 시작, 관리자가 CRUD로 등록 (운영 시 본당·비전랜드·드림랜드 및 공간 17개 등록됨)
+- 목록 조회는 공개 (예약 폼에서 선택해야 하므로). API 응답에 `name_ko`, `name_en` 모두 포함 — 프론트가 locale에 맞게 표시.
 
 ## 예약 규칙
 
@@ -70,7 +74,7 @@
   - `PENDING`·`APPROVED` → `CANCELLED` (본인 취소)
   - `PENDING`·`APPROVED` → 시간 변경(reschedule) 시 **항상 `PENDING`으로 리셋** (변경된 슬롯은 관리자 재승인 대상)
   - `REJECTED` / `CANCELLED` 는 종료 상태 — 변경/취소 불가(409)
-- 변경/취소는 **본인 예약만** 가능 (소유자 불일치 시 403)
+- 변경/취소는 **본인 예약만** 가능 (소유자 불일치 시 403). **관리자**는 ADMIN JWT로 동일 API에서 모든 예약 변경·취소 가능.
 
 ### 동시 예약 충돌 방지 (확정)
 - **충돌 정의 A — 생성 시점 배타**: `PENDING` + `APPROVED`가 활성 상태로, 같은 `Space`에 시간이 겹치면 거부.
@@ -91,13 +95,34 @@ UI 흐름: **building 선택 → space 선택 → 해당 space 예약 목록**. 
 |---|---|---|---|
 | GET | `/buildings` | 공개 | building 목록 |
 | GET | `/spaces?building_id=` | 공개 | 선택한 building의 space 목록 |
-| GET | `/reservations/{space_id}` | 공개 | 선택한 space의 예약 목록 (`?status=` 필터). space 없으면 404 |
-| GET | `/reservations` | 공개 | 전체 예약 (`?status=` 필터) |
-| GET | `/reservations/me` | user | 본인 예약 목록 |
+| GET | `/reservations/{space_id}` | 공개 | 선택한 space의 예약 목록 (`?status=` 필터). space 없으면 404. 응답: `ReservationPublicResponse` |
+| GET | `/reservations` | 공개 | 전체 예약 (`?status=` 필터). 응답: `ReservationPublicResponse` |
+| GET | `/reservations/me` | user | 본인 예약 목록. 응답: `ReservationResponse` (전체 필드) |
+
+### Building / Space API 응답
+
+| 엔티티 | 필드 |
+|---|---|
+| `BuildingResponse` | `id`, `name_ko`, `name_en`, `created_at` |
+| `SpaceResponse` | `id`, `building_id`, `name_ko`, `name_en`, `floor`, `created_at` |
+
+생성 요청(`POST /buildings`, `POST /spaces`)도 동일하게 `name_ko`, `name_en` (space는 `floor` 포함) 받음.
+
+### 공개 예약 조회 응답 (`ReservationPublicResponse`)
+
+공개 GET은 로그인 없이 호출되므로 개인정보 최소화. 필드 4개만 노출:
+
+| 필드 | 설명 |
+|---|---|
+| `status` | PENDING / APPROVED / REJECTED / CANCELLED |
+| `start_at` | 예약 시작 |
+| `end_at` | 예약 종료 |
+| `user_name` | 등록자 이름만 (`user_id`, 전화번호 노출 금지) |
+
+`id`, `space_id`, `created_at`, `updated_at`는 공개 응답에 포함하지 않음. User 레코드가 없으면 `user_name`은 `"알 수 없음"`.
 
 ## 구현 상태
 
 - 완료: 인증/유저 도메인, 인프라(Docker, async SQLAlchemy, Alembic)
-- 완료: building / space 도메인 (관리자 CRUD + 공개 조회)
-- 완료: reservation 도메인 — 생성/조회/시간변경/취소 + 관리자 승인/거부, 동시성(EXCLUDE) 확정·검증, space별 공개 조회(`GET /reservations/{space_id}`)
-- 예정: 관리자 예약 조정·취소, 공개 조회 응답의 개인정보 노출 범위 정리
+- 완료: building / space 도메인 (관리자 CRUD + 공개 조회, `name_ko`/`name_en`/`floor`)
+- 완료: reservation 도메인 — 생성/조회/시간변경/취소 + 관리자 승인/거부/조정·취소, 동시성(EXCLUDE) 확정·검증, space별 공개 조회(`GET /reservations/{space_id}`), 공개 조회 응답 개인정보 최소화(`ReservationPublicResponse`)

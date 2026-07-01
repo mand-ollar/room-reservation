@@ -4,12 +4,15 @@ from pydantic import BaseModel
 
 
 class CreateBuildingRequest(BaseModel):
-    name: str
+    name_ko: str
+    name_en: str
 
 
 class CreateSpaceRequest(BaseModel):
     building_id: str
-    name: str
+    name_ko: str
+    name_en: str
+    floor: int
 
 
 class CreateReservationRequest(BaseModel):

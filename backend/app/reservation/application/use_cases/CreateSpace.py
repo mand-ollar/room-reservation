@@ -9,7 +9,9 @@ from app.reservation.domain.exceptions import BuildingNotFoundError, DuplicateSp
 
 class CreateSpaceCommand(BaseModel):
     building_id: ULID
-    name: str
+    name_ko: str
+    name_en: str
+    floor: int
 
 
 class CreateSpaceUseCase:
@@ -22,13 +24,25 @@ class CreateSpaceUseCase:
         if building is None:
             raise BuildingNotFoundError()
 
-        duplicate: Space | None = await self.space_repository.find_by_building_id_and_name(
+        duplicate_ko: Space | None = await self.space_repository.find_by_building_id_and_name_ko(
             building_id=command.building_id,
-            name=command.name,
+            name_ko=command.name_ko,
         )
-        if duplicate is not None:
+        if duplicate_ko is not None:
+            raise DuplicateSpaceNameError()
+
+        duplicate_en: Space | None = await self.space_repository.find_by_building_id_and_name_en(
+            building_id=command.building_id,
+            name_en=command.name_en,
+        )
+        if duplicate_en is not None:
             raise DuplicateSpaceNameError()
 
         return await self.space_repository.save(
-            entity=Space.create(building_id=command.building_id, name=command.name),
+            entity=Space.create(
+                building_id=command.building_id,
+                name_ko=command.name_ko,
+                name_en=command.name_en,
+                floor=command.floor,
+            ),
         )

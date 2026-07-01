@@ -99,10 +99,12 @@ def get_create_reservation_use_case(
 def get_list_reservations_use_case(
     reservation_repository: Annotated[ReservationRepository, Depends(get_reservation_repository)],
     space_repository: Annotated[SpaceRepository, Depends(get_space_repository)],
+    user_repository: Annotated[UserRepository, Depends(get_user_repository)],
 ) -> ListReservationsUseCase:
     return ListReservationsUseCase(
         reservation_repository=reservation_repository,
         space_repository=space_repository,
+        user_repository=user_repository,
     )
 
 

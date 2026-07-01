@@ -10,7 +10,9 @@ class SpaceMapper:
         return Space(
             id=ULID.from_str(alchemy_entity.id),
             building_id=ULID.from_str(alchemy_entity.building_id),
-            name=alchemy_entity.name,
+            name_ko=alchemy_entity.name_ko,
+            name_en=alchemy_entity.name_en,
+            floor=alchemy_entity.floor,
             created_at=alchemy_entity.created_at,
         )
 
@@ -19,6 +21,8 @@ class SpaceMapper:
         return SpaceAlchemyEntity(
             id=str(domain_entity.id),
             building_id=str(domain_entity.building_id),
-            name=domain_entity.name,
+            name_ko=domain_entity.name_ko,
+            name_en=domain_entity.name_en,
+            floor=domain_entity.floor,
             created_at=domain_entity.created_at,
         )

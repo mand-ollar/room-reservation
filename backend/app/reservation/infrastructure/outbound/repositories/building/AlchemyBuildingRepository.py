@@ -21,9 +21,18 @@ class AlchemyBuildingRepository(BuildingRepository):
             return None
         return BuildingMapper.to_domain_entity(alchemy_entity=entity)
 
-    async def find_by_name(self, name: str) -> Building | None:
+    async def find_by_name_ko(self, name_ko: str) -> Building | None:
         stmt: Select[tuple[BuildingAlchemyEntity]] = select(BuildingAlchemyEntity).where(
-            BuildingAlchemyEntity.name == name
+            BuildingAlchemyEntity.name_ko == name_ko
+        )
+        entity: BuildingAlchemyEntity | None = (await self.session.execute(stmt)).scalar_one_or_none()
+        if entity is None:
+            return None
+        return BuildingMapper.to_domain_entity(alchemy_entity=entity)
+
+    async def find_by_name_en(self, name_en: str) -> Building | None:
+        stmt: Select[tuple[BuildingAlchemyEntity]] = select(BuildingAlchemyEntity).where(
+            BuildingAlchemyEntity.name_en == name_en
         )
         entity: BuildingAlchemyEntity | None = (await self.session.execute(stmt)).scalar_one_or_none()
         if entity is None:
@@ -31,7 +40,9 @@ class AlchemyBuildingRepository(BuildingRepository):
         return BuildingMapper.to_domain_entity(alchemy_entity=entity)
 
     async def find_all(self) -> list[Building]:
-        stmt: Select[tuple[BuildingAlchemyEntity]] = select(BuildingAlchemyEntity).order_by(BuildingAlchemyEntity.name)
+        stmt: Select[tuple[BuildingAlchemyEntity]] = select(BuildingAlchemyEntity).order_by(
+            BuildingAlchemyEntity.name_ko
+        )
         entities: list[BuildingAlchemyEntity] = list((await self.session.execute(stmt)).scalars().all())
         return [BuildingMapper.to_domain_entity(alchemy_entity=entity) for entity in entities]
 

@@ -4,7 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from ulid import ULID
 
 from app.reservation.application.use_cases.ApproveReservation import ApproveReservationUseCase
-from app.reservation.application.use_cases.CancelReservation import CancelReservationUseCase
+from app.reservation.application.use_cases.CancelReservation import (
+    CancelReservationCommand,
+    CancelReservationUseCase,
+)
 from app.reservation.application.use_cases.CreateBuilding import CreateBuildingCommand, CreateBuildingUseCase
 from app.reservation.application.use_cases.CreateReservation import (
     CreateReservationCommand,
@@ -15,7 +18,7 @@ from app.reservation.application.use_cases.DeleteBuilding import DeleteBuildingU
 from app.reservation.application.use_cases.DeleteSpace import DeleteSpaceUseCase
 from app.reservation.application.use_cases.ListBuildings import ListBuildingsUseCase
 from app.reservation.application.use_cases.ListMyReservations import ListMyReservationsUseCase
-from app.reservation.application.use_cases.ListReservations import ListReservationsUseCase
+from app.reservation.application.use_cases.ListReservations import ListReservationsUseCase, PublicReservationView
 from app.reservation.application.use_cases.ListSpaces import ListSpacesUseCase
 from app.reservation.application.use_cases.RejectReservation import RejectReservationUseCase
 from app.reservation.application.use_cases.RescheduleReservation import (
@@ -45,11 +48,12 @@ from app.reservation.infrastructure.inbound.api.messages.requests import (
 )
 from app.reservation.infrastructure.inbound.api.messages.responses import (
     BuildingResponse,
+    ReservationPublicResponse,
     ReservationResponse,
     SpaceResponse,
 )
 from app.user.domain.entities import User
-from di.auth import get_current_user, require_admin
+from di.auth import ReservationActor, get_current_user, get_reservation_actor, require_admin
 from di.usecase import (
     get_approve_reservation_use_case,
     get_cancel_reservation_use_case,
@@ -95,7 +99,9 @@ async def create_building(
     use_case: Annotated[CreateBuildingUseCase, Depends(get_create_building_use_case)],
 ):
     try:
-        building: Building = await use_case.execute(command=CreateBuildingCommand(name=request.name))
+        building: Building = await use_case.execute(
+            command=CreateBuildingCommand(name_ko=request.name_ko, name_en=request.name_en),
+        )
     except DuplicateBuildingNameError as error:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error
     return BuildingResponse.from_entity(building=building)
@@ -140,7 +146,12 @@ async def create_space(
 ):
     try:
         space: Space = await use_case.execute(
-            command=CreateSpaceCommand(building_id=_parse_ulid(value=request.building_id), name=request.name),
+            command=CreateSpaceCommand(
+                building_id=_parse_ulid(value=request.building_id),
+                name_ko=request.name_ko,
+                name_en=request.name_en,
+                floor=request.floor,
+            ),
         )
     except BuildingNotFoundError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
@@ -194,13 +205,13 @@ async def create_reservation(
     return ReservationResponse.from_entity(reservation=reservation)
 
 
-@router.get("/reservations", response_model=list[ReservationResponse])
+@router.get("/reservations", response_model=list[ReservationPublicResponse])
 async def list_reservations(
     use_case: Annotated[ListReservationsUseCase, Depends(get_list_reservations_use_case)],
     status_filter: Annotated[ReservationStatus | None, Query(alias="status")] = None,
 ):
-    reservations: list[Reservation] = await use_case.execute(status=status_filter)
-    return [ReservationResponse.from_entity(reservation=reservation) for reservation in reservations]
+    views: list[PublicReservationView] = await use_case.execute(status=status_filter)
+    return [ReservationPublicResponse.from_view(view=view) for view in views]
 
 
 @router.get("/reservations/me", response_model=list[ReservationResponse])
@@ -212,21 +223,21 @@ async def list_my_reservations(
     return [ReservationResponse.from_entity(reservation=reservation) for reservation in reservations]
 
 
-@router.get("/reservations/{space_id}", response_model=list[ReservationResponse])
+@router.get("/reservations/{space_id}", response_model=list[ReservationPublicResponse])
 async def list_reservations_by_space(
     space_id: str,
     use_case: Annotated[ListReservationsUseCase, Depends(get_list_reservations_use_case)],
     status_filter: Annotated[ReservationStatus | None, Query(alias="status")] = None,
 ):
     try:
-        reservations: list[Reservation] = await use_case.execute(
+        views: list[PublicReservationView] = await use_case.execute(
             status=status_filter,
             space_id=_parse_ulid(value=space_id),
             require_existing_space=True,
         )
     except SpaceNotFoundError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
-    return [ReservationResponse.from_entity(reservation=reservation) for reservation in reservations]
+    return [ReservationPublicResponse.from_view(view=view) for view in views]
 
 
 @router.post(
@@ -268,13 +279,16 @@ async def reject_reservation(
 @router.post("/reservations/{reservation_id}/cancel", response_model=ReservationResponse)
 async def cancel_reservation(
     reservation_id: str,
-    current_user: Annotated[User, Depends(get_current_user)],
+    actor: Annotated[ReservationActor, Depends(get_reservation_actor)],
     use_case: Annotated[CancelReservationUseCase, Depends(get_cancel_reservation_use_case)],
 ):
     try:
         reservation: Reservation = await use_case.execute(
-            reservation_id=_parse_ulid(value=reservation_id),
-            user_id=current_user.id,
+            command=CancelReservationCommand(
+                reservation_id=_parse_ulid(value=reservation_id),
+                user_id=actor.user_id,
+                as_admin=actor.is_admin,
+            ),
         )
     except ReservationNotFoundError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
@@ -289,16 +303,17 @@ async def cancel_reservation(
 async def reschedule_reservation(
     reservation_id: str,
     request: RescheduleReservationRequest,
-    current_user: Annotated[User, Depends(get_current_user)],
+    actor: Annotated[ReservationActor, Depends(get_reservation_actor)],
     use_case: Annotated[RescheduleReservationUseCase, Depends(get_reschedule_reservation_use_case)],
 ):
     try:
         reservation: Reservation = await use_case.execute(
             command=RescheduleReservationCommand(
                 reservation_id=_parse_ulid(value=reservation_id),
-                user_id=current_user.id,
+                user_id=actor.user_id,
                 start_at=request.start_at,
                 end_at=request.end_at,
+                as_admin=actor.is_admin,
             ),
         )
     except ReservationNotFoundError as error:

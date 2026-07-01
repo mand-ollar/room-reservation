@@ -10,5 +10,6 @@ class BuildingAlchemyEntity(Base):
     __tablename__ = "buildings"
 
     id: Mapped[str] = mapped_column(String(26), primary_key=True)
-    name: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
+    name_ko: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
+    name_en: Mapped[str] = mapped_column(String(255), nullable=False, unique=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

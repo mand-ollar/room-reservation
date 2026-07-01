@@ -9,7 +9,8 @@ class BuildingMapper:
     def to_domain_entity(alchemy_entity: BuildingAlchemyEntity) -> Building:
         return Building(
             id=ULID.from_str(alchemy_entity.id),
-            name=alchemy_entity.name,
+            name_ko=alchemy_entity.name_ko,
+            name_en=alchemy_entity.name_en,
             created_at=alchemy_entity.created_at,
         )
 
@@ -17,6 +18,7 @@ class BuildingMapper:
     def to_alchemy_entity(domain_entity: Building) -> BuildingAlchemyEntity:
         return BuildingAlchemyEntity(
             id=str(domain_entity.id),
-            name=domain_entity.name,
+            name_ko=domain_entity.name_ko,
+            name_en=domain_entity.name_en,
             created_at=domain_entity.created_at,
         )
