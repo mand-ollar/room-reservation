@@ -1,0 +1,103 @@
+---
+description: TypeScript and React conventions for the frontend
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# TypeScript & React
+
+## Types
+
+- `any` is banned. Use `unknown` and narrow.
+- Prefer `type` over `interface`.
+- Annotate parameters, return types, and non-obvious variables explicitly.
+
+```typescript
+// correct
+type UserProps = {
+  name: string;
+  age: number;
+};
+
+type ApiResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; status: number; message: string };
+
+// never
+interface UserProps { ... }
+const result: any = await response.json();
+```
+
+## Functions
+
+- Exported functions: `function` declaration.
+- Internal helpers: `const` arrow functions.
+
+```typescript
+export function getUser(userId: string): User { ... }
+
+const formatName = (name: string): string => { ... };
+```
+
+## React
+
+- Functional components only. No class components.
+- Extract reusable logic into custom hooks (`useXxx`).
+- Colocate component, hook, and styles by feature — not by file type alone.
+- Prefer explicit props types; avoid prop spreading into DOM unless intentional.
+
+```typescript
+type ReservationListProps = {
+  spaceId: string;
+};
+
+export function ReservationList({ spaceId }: ReservationListProps) {
+  ...
+}
+```
+
+## HTTP & API
+
+- Use `fetch` directly. No axios.
+- Mirror backend DTOs from `product.md` (`TokenResponse`, `BuildingResponse`, etc.).
+- Send `Authorization: Bearer {access_token}` for authenticated routes.
+- Handle 401 → refresh or re-login; 403/404/409 → show user-facing message from `detail`.
+
+```typescript
+export async function apiFetch<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const response: Response = await fetch(`${import.meta.env.VITE_API_URL}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+  if (!response.ok) {
+    throw new ApiError(response.status, await response.text());
+  }
+  return response.json() as Promise<T>;
+}
+```
+
+## Product-specific frontend rules
+
+- `Building` / `Space` names are `{ ko, en }` — pick one locale key for display; don't assume a single `name` field.
+- Public reservation views expose only `status`, `start_at`, `end_at`, `user_name` — don't expect `id` or `user_id` on public lists.
+- User login: name + phone (`POST /auth/login`). Admin login: password only (`POST /auth/admin/login`).
+- Store tokens securely (memory or httpOnly cookie pattern); never log tokens.
+
+## Tooling
+
+- **Package manager:** `pnpm`. Never `npm install` / `yarn`.
+- **Lint/format:** ESLint + Prettier — match project config when present.
+- **Type check:** `pnpm exec tsc --noEmit` before considering work done.
+
+## File organization
+
+- `src/api/` — fetch wrappers and DTO types
+- `src/features/` — screens and feature hooks
+- `src/components/` — shared UI only
+- One primary export per file when practical; barrel `index.ts` only for public feature APIs.

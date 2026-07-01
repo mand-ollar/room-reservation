@@ -1,0 +1,263 @@
+---
+description: Room Reservation product spec and API reference
+alwaysApply: true
+---
+
+# Room Reservation — Product
+
+교회 공간 예약 웹 서비스. 일반 사용자가 건물/공간을 예약하고, 관리자가 승인·조정한다.
+
+## 도메인 & 관계
+
+- `User` (이름, 전화번호) ──< `Reservation` : 등록자(누가 예약했는지 식별)
+- `Building` (본당 / 비전랜드 / 드림랜드) ──< `Space` : 건물 1 : 공간 N
+- `Space` (중등부 / 고등부 / 초등부 ...) ──< `Reservation` : 어떤 공간 예약인지
+- `Building` / `Space` 이름은 **`names` JSONB** (`{"ko": "...", "en": "..."}`) — locale별 동등 저장, DB 컬럼명에 특정 언어 하드코딩 없음. 프론트/API는 locale에 맞는 키 선택.
+- `Space`는 **`floor`(층, int)** 별도 보유 — 정렬·필터용.
+- 관리자(Admin)는 엔티티가 아님 — 단일 비밀번호로만 존재, 모든 도메인을 조정
+
+### 모듈 구조
+
+- `Building` / `Space` / `Reservation`은 하나의 바운디드 컨텍스트로 보고 **`app/reservation/` 단일 모듈**에 묶는다.
+- 단, 셋은 각각 **독립 애그리거트 루트** — 각자 레포지토리를 가지며 서로는 **ID로만 참조**(객체 중첩 금지).
+  - `Reservation`은 `user_id`, `space_id`를 ULID로 보유. building/space 상세가 응답에 필요하면 read 단계(조립/조인)에서 푼다.
+- 도메인 예외는 `domain/exceptions/` 패키지 — 예외 클래스별 파일 + `__init__.py`에서 재노출.
+
+## 행위자
+
+| 행위자 | 식별 | 할 수 있는 것 |
+|---|---|---|
+| **일반 사용자** | 이름 + 전화번호 (정식 계정 아님) | 공개 조회, 예약 신청·본인 예약 조회/변경/취소 |
+| **관리자** | `.env` `ADMIN_PASSWORD` 단일 비밀번호 | 건물/공간 CRUD, 전체 예약 조회, 승인/거부, 모든 예약 변경·취소 |
+| **비로그인 방문자** | 없음 | 건물/공간/예약 현황 공개 조회 |
+
+## 인증 규칙
+
+- **공개** (Bearer 불필요): 건물/공간 목록, 예약 현황 조회, 로그인, 헬스체크
+- **USER JWT** 필요: 예약 생성, 본인 예약 조회(`GET /reservations/me`), 본인 예약 변경·취소
+- **ADMIN JWT** 필요: 건물/공간 CRUD, 관리자 예약 조회, 예약 승인/거부
+- **USER 또는 ADMIN JWT** 필요: 예약 시간 변경(`PATCH`), 예약 취소(`POST .../cancel`) — ADMIN은 소유권 검사 생략
+
+### 사용자 로그인 (`POST /auth/login`)
+
+- 전화번호 없음 → 신규 User 생성 후 로그인
+- 전화번호 있음 + 이름 일치 → 로그인
+- 전화번호 있음 + 이름 불일치 → 401
+
+### 관리자 로그인 (`POST /auth/admin/login`)
+
+- 비밀번호 일치 → ADMIN JWT 발급
+- 불일치 → 401
+
+### 토큰
+
+- JWT access / refresh 쌍 발급. `Authorization: Bearer {access_token}` 헤더 사용.
+- 클레임: `sub`(USER는 user ULID, ADMIN은 고정 subject), `role`(`USER` | `ADMIN`), `type`(`access` | `refresh`)
+- 만료: access 30분, refresh 7일 (`.env` `ACCESS_TOKEN_EXPIRE_MINUTES`, `REFRESH_TOKEN_EXPIRE_DAYS`)
+- `POST /auth/refresh`: refresh 토큰으로 새 access/refresh 쌍 발급 (USER·ADMIN 모두 지원)
+- `GET /auth/me`: **USER 토큰 전용** — 로그인한 사용자 정보 반환. ADMIN 토큰으로 호출 시 401.
+
+## 핵심 사용자 흐름
+
+### 예약 현황 조회 (로그인 불필요)
+
+**building 선택 → space 선택 → 해당 space 예약 목록**
+
+`Space`에 `building_id`가 있으므로 예약 조회 API에는 **space_id만** 넘긴다.
+
+### 예약 신청 (로그인 필요)
+
+1. `POST /auth/login` — 이름 + 전화번호
+2. `GET /buildings` → `GET /spaces?building_id=` — 건물·공간 선택
+3. `POST /reservations` — `space_id`, `start_at`, `end_at` → **PENDING** 생성
+4. 관리자 승인 대기
+
+### 본인 예약 관리 (로그인 필요)
+
+- `GET /reservations/me` — 내 예약 전체 필드 조회
+- `PATCH /reservations/{id}` — 시간 변경 (상태 → **PENDING** 리셋, 재승인 필요)
+- `POST /reservations/{id}/cancel` — 취소 (`PENDING`·`APPROVED`만 가능)
+
+## 건물 / 공간 규칙
+
+- 삭제 정책: **하드 삭제 + `ON DELETE RESTRICT`**
+  - 하위 `Space`가 있는 `Building` 삭제 → 거부(409)
+  - 예약이 걸린 `Space` 삭제 → `SpaceInUseError`(409) + DB FK(RESTRICT) 이중 보호
+- 이름 유니크:
+  - `Building`: `names->>'ko'`, `names->>'en'` 각각 전역 유니크 (expression index)
+  - `Space`: `(building_id, names->>'ko')`, `(building_id, names->>'en')` 각각 유니크
+- `names` JSONB 검증 (CHECK): `ko`/`en` 키 필수, string 타입, 공백만 불가
+- 초기 데이터: 시드 없이 빈 상태로 시작, 관리자가 CRUD로 등록. 로컬 편의 시드는 `scripts/seed_buildings_spaces.py` (gitignored)
+- 목록 조회는 공개 (예약 폼에서 선택해야 하므로). API 응답에 `names` 객체 전체 포함 — 프론트가 locale에 맞게 표시.
+
+## 예약 규칙
+
+- 모든 예약은 기본 `PENDING`으로 생성 → 관리자 승인 필요
+- 시간 구간: 자유 datetime 범위 (`start_at` / `end_at`, timezone-aware). `start_at < end_at` 강제 (DB CHECK + 도메인 검증). 과거 시각도 허용.
+- 예약마다 등록자(User) 식별
+
+### 상태 머신
+
+- 상태: `PENDING` / `APPROVED` / `REJECTED` / `CANCELLED` (Postgres 네이티브 enum)
+- 전이:
+  - 생성 → `PENDING`
+  - `PENDING` → `APPROVED` (관리자 승인) / `REJECTED` (관리자 거부)
+  - `PENDING`·`APPROVED` → `CANCELLED` (본인 또는 관리자 취소)
+  - `PENDING`·`APPROVED` → 시간 변경(reschedule) 시 **항상 `PENDING`으로 리셋** (변경된 슬롯은 관리자 재승인 대상)
+  - `REJECTED` / `CANCELLED` 는 종료 상태 — 변경/취소 불가(409)
+- 변경/취소는 **본인 예약만** 가능 (소유자 불일치 시 403). **관리자**는 ADMIN JWT로 동일 API에서 모든 예약 변경·취소 가능.
+
+### 동시 예약 충돌 방지
+
+- **충돌 정의**: `PENDING` + `APPROVED`가 활성 상태로, 같은 `Space`에 시간이 겹치면 거부.
+  - `PENDING`도 슬롯을 선점한다(선착순). 거부/취소되면 슬롯이 풀린다.
+  - 한 슬롯엔 활성 예약이 단 하나뿐 → 관리자가 경합 신청 중 고르는 상황은 발생하지 않음.
+- **메커니즘**: Postgres `EXCLUDE` 제약 + `btree_gist`로 DB가 원천 차단(경쟁 상태 불가). 위반 시 409.
+  ```sql
+  EXCLUDE USING gist (space_id WITH =, tstzrange(start_at, end_at, '[)') WITH &&)
+  WHERE (status IN ('PENDING', 'APPROVED'))
+  ```
+- **구간 의미**: 반열린 `[start, end)` — 끝 시각 == 다음 시작 시각이면 겹침 아님(연속 예약 허용).
+
+## API
+
+모든 ID는 ULID 문자열(26자). 인증 필요 엔드포인트는 `Authorization: Bearer {access_token}`.
+
+### 인증
+
+| 메서드 | 경로 | 권한 | 요청 body | 응답 |
+|---|---|---|---|---|
+| POST | `/auth/login` | 공개 | `{ name, phone }` | `TokenResponse` |
+| POST | `/auth/admin/login` | 공개 | `{ password }` | `TokenResponse` |
+| POST | `/auth/refresh` | 공개 | `{ refresh_token }` | `TokenResponse` |
+| GET | `/auth/me` | user | — | `UserResponse` |
+
+### 건물 / 공간
+
+| 메서드 | 경로 | 권한 | 요청 body | 응답 |
+|---|---|---|---|---|
+| GET | `/buildings` | 공개 | — | `BuildingResponse[]` |
+| POST | `/buildings` | admin | `{ names: { ko, en } }` | `BuildingResponse` (201) |
+| PATCH | `/buildings/{building_id}` | admin | `{ names: { ko, en } }` | `BuildingResponse` |
+| DELETE | `/buildings/{building_id}` | admin | — | 204 |
+| GET | `/spaces?building_id=` | 공개 | — | `SpaceResponse[]` (`building_id` 생략 시 전체) |
+| POST | `/spaces` | admin | `{ building_id, names: { ko, en }, floor }` | `SpaceResponse` (201) |
+| PATCH | `/spaces/{space_id}` | admin | `{ names: { ko, en }, floor }` | `SpaceResponse` |
+| DELETE | `/spaces/{space_id}` | admin | — | 204 |
+
+### 예약 — 조회
+
+| 메서드 | 경로 | 권한 | 쿼리 | 응답 |
+|---|---|---|---|---|
+| GET | `/reservations` | 공개 | `?status=` | `ReservationPublicResponse[]` |
+| GET | `/reservations/me` | user | — | `ReservationResponse[]` |
+| GET | `/reservations/{space_id}` | 공개 | `?status=` | `ReservationPublicResponse[]` (space 없으면 404) |
+| GET | `/admin/reservations` | admin | `?status=`, `?space_id=` | `ReservationResponse[]` |
+
+`?status=` 필터 값: `PENDING` | `APPROVED` | `REJECTED` | `CANCELLED` (생략 시 전체)
+
+### 예약 — 변경
+
+| 메서드 | 경로 | 권한 | 요청 body | 응답 |
+|---|---|---|---|---|
+| POST | `/reservations` | user | `{ space_id, start_at, end_at }` | `ReservationResponse` (201) |
+| PATCH | `/reservations/{reservation_id}` | user 또는 admin | `{ start_at, end_at }` | `ReservationResponse` |
+| POST | `/reservations/{reservation_id}/cancel` | user 또는 admin | — | `ReservationResponse` |
+| POST | `/reservations/{reservation_id}/approve` | admin | — | `ReservationResponse` |
+| POST | `/reservations/{reservation_id}/reject` | admin | — | `ReservationResponse` |
+
+### 기타
+
+| 메서드 | 경로 | 권한 | 응답 |
+|---|---|---|---|
+| GET | `/health` | 공개 | `{ "status": "ok" }` |
+
+## 응답 스키마
+
+### `TokenResponse`
+
+| 필드 | 타입 | 설명 |
+|---|---|---|
+| `access_token` | string | JWT access token |
+| `refresh_token` | string | JWT refresh token |
+| `token_type` | string | `"bearer"` (고정) |
+
+### `UserResponse`
+
+| 필드 | 타입 | 설명 |
+|---|---|---|
+| `id` | string | ULID |
+| `name` | string | 이름 |
+| `phone` | string | 전화번호 |
+| `created_at` | datetime | 생성 시각 |
+
+### `BuildingResponse`
+
+| 필드 | 타입 | 설명 |
+|---|---|---|
+| `id` | string | ULID |
+| `names` | `{ ko, en }` | 다국어 이름 |
+| `created_at` | datetime | 생성 시각 |
+
+### `SpaceResponse`
+
+| 필드 | 타입 | 설명 |
+|---|---|---|
+| `id` | string | ULID |
+| `building_id` | string | 소속 건물 ULID |
+| `names` | `{ ko, en }` | 다국어 이름 |
+| `floor` | int | 층 |
+| `created_at` | datetime | 생성 시각 |
+
+### `ReservationPublicResponse` (공개 조회)
+
+로그인 없이 호출되므로 개인정보 최소화. 필드 4개만 노출:
+
+| 필드 | 타입 | 설명 |
+|---|---|---|
+| `status` | enum | PENDING / APPROVED / REJECTED / CANCELLED |
+| `start_at` | datetime | 예약 시작 |
+| `end_at` | datetime | 예약 종료 |
+| `user_name` | string | 등록자 이름만 (`user_id`, 전화번호 노출 금지) |
+
+`id`, `space_id`, `created_at`, `updated_at`는 공개 응답에 포함하지 않음. User 레코드가 없으면 `user_name`은 `"알 수 없음"`.
+
+### `ReservationResponse` (인증·관리자 조회)
+
+| 필드 | 타입 | 설명 |
+|---|---|---|
+| `id` | string | ULID |
+| `user_id` | string | 등록자 ULID |
+| `space_id` | string | 공간 ULID |
+| `status` | enum | PENDING / APPROVED / REJECTED / CANCELLED |
+| `start_at` | datetime | 예약 시작 |
+| `end_at` | datetime | 예약 종료 |
+| `created_at` | datetime | 생성 시각 |
+| `updated_at` | datetime | 수정 시각 |
+
+## HTTP 에러 매핑
+
+| 상태 | 상황 |
+|---|---|
+| 400 | ULID 형식 오류, `start_at >= end_at` |
+| 401 | 인증 실패 (로그인 거부, 토큰 무효, USER 전용 API에 ADMIN 토큰) |
+| 403 | 권한 부족 (admin API에 USER 토큰, 타인 예약 변경·취소) |
+| 404 | building / space / reservation / user 미존재 |
+| 409 | 이름 중복, 건물·공간 삭제 불가(하위 데이터 존재), 예약 시간 충돌, 잘못된 상태 전이 |
+
+## 인프라 & 설정
+
+- CORS: `.env` `CORS_ORIGINS` (쉼표 구분, 기본 `http://localhost:3000,http://localhost:5173`)
+- DB: Postgres + async SQLAlchemy + Alembic
+- Docker Compose로 로컬 개발 환경 제공
+
+## 구현 상태
+
+| 영역 | 상태 |
+|---|---|
+| 인증/유저 도메인 (로그인, refresh, JWT) | 완료 |
+| building / space 도메인 (admin CRUD + 공개 조회, `names` JSONB / `floor`) | 완료 |
+| reservation 도메인 (생성/조회/변경/취소, 승인/거부, EXCLUDE 동시성) | 완료 |
+| 공개 예약 조회 개인정보 최소화 (`ReservationPublicResponse`) | 완료 |
+| CORS | 완료 |
+| 프론트엔드 | 미구현 (백엔드 API만) |
