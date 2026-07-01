@@ -12,12 +12,15 @@ from app.reservation.application.use_cases.CreateReservation import CreateReserv
 from app.reservation.application.use_cases.CreateSpace import CreateSpaceUseCase
 from app.reservation.application.use_cases.DeleteBuilding import DeleteBuildingUseCase
 from app.reservation.application.use_cases.DeleteSpace import DeleteSpaceUseCase
+from app.reservation.application.use_cases.ListAdminReservations import ListAdminReservationsUseCase
 from app.reservation.application.use_cases.ListBuildings import ListBuildingsUseCase
 from app.reservation.application.use_cases.ListMyReservations import ListMyReservationsUseCase
 from app.reservation.application.use_cases.ListReservations import ListReservationsUseCase
 from app.reservation.application.use_cases.ListSpaces import ListSpacesUseCase
 from app.reservation.application.use_cases.RejectReservation import RejectReservationUseCase
 from app.reservation.application.use_cases.RescheduleReservation import RescheduleReservationUseCase
+from app.reservation.application.use_cases.UpdateBuilding import UpdateBuildingUseCase
+from app.reservation.application.use_cases.UpdateSpace import UpdateSpaceUseCase
 from app.user.application.outbound.repositories.UserRepository import UserRepository
 from app.user.application.use_cases.AdminLogin import AdminLoginUseCase
 from app.user.application.use_cases.RefreshToken import RefreshTokenUseCase
@@ -66,6 +69,12 @@ def get_delete_building_use_case(
     return DeleteBuildingUseCase(building_repository=building_repository, space_repository=space_repository)
 
 
+def get_update_building_use_case(
+    building_repository: Annotated[BuildingRepository, Depends(get_building_repository)],
+) -> UpdateBuildingUseCase:
+    return UpdateBuildingUseCase(building_repository=building_repository)
+
+
 def get_create_space_use_case(
     building_repository: Annotated[BuildingRepository, Depends(get_building_repository)],
     space_repository: Annotated[SpaceRepository, Depends(get_space_repository)],
@@ -77,6 +86,12 @@ def get_list_spaces_use_case(
     space_repository: Annotated[SpaceRepository, Depends(get_space_repository)],
 ) -> ListSpacesUseCase:
     return ListSpacesUseCase(space_repository=space_repository)
+
+
+def get_update_space_use_case(
+    space_repository: Annotated[SpaceRepository, Depends(get_space_repository)],
+) -> UpdateSpaceUseCase:
+    return UpdateSpaceUseCase(space_repository=space_repository)
 
 
 def get_delete_space_use_case(
@@ -106,6 +121,12 @@ def get_list_reservations_use_case(
         space_repository=space_repository,
         user_repository=user_repository,
     )
+
+
+def get_list_admin_reservations_use_case(
+    reservation_repository: Annotated[ReservationRepository, Depends(get_reservation_repository)],
+) -> ListAdminReservationsUseCase:
+    return ListAdminReservationsUseCase(reservation_repository=reservation_repository)
 
 
 def get_list_my_reservations_use_case(
