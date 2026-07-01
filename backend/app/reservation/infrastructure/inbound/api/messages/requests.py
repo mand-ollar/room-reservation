@@ -17,8 +17,17 @@ class CreateBuildingRequest(BaseModel):
     names: LocalizedNamesRequest
 
 
+class UpdateBuildingRequest(BaseModel):
+    names: LocalizedNamesRequest
+
+
 class CreateSpaceRequest(BaseModel):
     building_id: str
+    names: LocalizedNamesRequest
+    floor: int
+
+
+class UpdateSpaceRequest(BaseModel):
     names: LocalizedNamesRequest
     floor: int
 

@@ -1,9 +1,11 @@
-from sqlalchemy import Select, delete, select
+from sqlalchemy import Select, delete, select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from ulid import ULID
 
 from app.reservation.application.outbound.repositories.BuildingRepository import BuildingRepository
 from app.reservation.domain.entities import Building
+from app.reservation.domain.exceptions import DuplicateBuildingNameError
 from app.reservation.infrastructure.outbound.repositories.building.BuildingAlchemyEntity import BuildingAlchemyEntity
 from app.reservation.infrastructure.outbound.repositories.building.BuildingMapper import BuildingMapper
 
@@ -42,6 +44,19 @@ class AlchemyBuildingRepository(BuildingRepository):
         self.session.add(alchemy_entity)
         await self.session.flush()
         return BuildingMapper.to_domain_entity(alchemy_entity=alchemy_entity)
+
+    async def update(self, entity: Building) -> Building:
+        stmt = (
+            update(BuildingAlchemyEntity)
+            .where(BuildingAlchemyEntity.id == str(entity.id))
+            .values(names=entity.names.to_dict())
+        )
+        try:
+            await self.session.execute(stmt)
+            await self.session.flush()
+        except IntegrityError as error:
+            raise DuplicateBuildingNameError() from error
+        return entity
 
     async def delete(self, id: ULID) -> None:
         await self.session.execute(delete(BuildingAlchemyEntity).where(BuildingAlchemyEntity.id == str(id)))
