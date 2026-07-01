@@ -16,6 +16,7 @@ from app.reservation.application.use_cases.CreateReservation import (
 from app.reservation.application.use_cases.CreateSpace import CreateSpaceCommand, CreateSpaceUseCase
 from app.reservation.application.use_cases.DeleteBuilding import DeleteBuildingUseCase
 from app.reservation.application.use_cases.DeleteSpace import DeleteSpaceUseCase
+from app.reservation.application.use_cases.ListAdminReservations import ListAdminReservationsUseCase
 from app.reservation.application.use_cases.ListBuildings import ListBuildingsUseCase
 from app.reservation.application.use_cases.ListMyReservations import ListMyReservationsUseCase
 from app.reservation.application.use_cases.ListReservations import ListReservationsUseCase, PublicReservationView
@@ -25,6 +26,8 @@ from app.reservation.application.use_cases.RescheduleReservation import (
     RescheduleReservationCommand,
     RescheduleReservationUseCase,
 )
+from app.reservation.application.use_cases.UpdateBuilding import UpdateBuildingCommand, UpdateBuildingUseCase
+from app.reservation.application.use_cases.UpdateSpace import UpdateSpaceCommand, UpdateSpaceUseCase
 from app.reservation.domain.entities import Building, Reservation, Space
 from app.reservation.domain.exceptions import (
     BuildingInUseError,
@@ -45,6 +48,8 @@ from app.reservation.infrastructure.inbound.api.messages.requests import (
     CreateReservationRequest,
     CreateSpaceRequest,
     RescheduleReservationRequest,
+    UpdateBuildingRequest,
+    UpdateSpaceRequest,
 )
 from app.reservation.infrastructure.inbound.api.messages.responses import (
     BuildingResponse,
@@ -62,12 +67,15 @@ from di.usecase import (
     get_create_space_use_case,
     get_delete_building_use_case,
     get_delete_space_use_case,
+    get_list_admin_reservations_use_case,
     get_list_buildings_use_case,
     get_list_my_reservations_use_case,
     get_list_reservations_use_case,
     get_list_spaces_use_case,
     get_reject_reservation_use_case,
     get_reschedule_reservation_use_case,
+    get_update_building_use_case,
+    get_update_space_use_case,
 )
 
 router: APIRouter = APIRouter(tags=["reservation"])
@@ -102,6 +110,30 @@ async def create_building(
         building: Building = await use_case.execute(
             command=CreateBuildingCommand(names=request.names.to_value_object()),
         )
+    except DuplicateBuildingNameError as error:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error
+    return BuildingResponse.from_entity(building=building)
+
+
+@router.patch(
+    "/buildings/{building_id}",
+    response_model=BuildingResponse,
+    dependencies=[Depends(require_admin)],
+)
+async def update_building(
+    building_id: str,
+    request: UpdateBuildingRequest,
+    use_case: Annotated[UpdateBuildingUseCase, Depends(get_update_building_use_case)],
+):
+    try:
+        building: Building = await use_case.execute(
+            command=UpdateBuildingCommand(
+                building_id=_parse_ulid(value=building_id),
+                names=request.names.to_value_object(),
+            ),
+        )
+    except BuildingNotFoundError as error:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
     except DuplicateBuildingNameError as error:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error
     return BuildingResponse.from_entity(building=building)
@@ -153,6 +185,31 @@ async def create_space(
             ),
         )
     except BuildingNotFoundError as error:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
+    except DuplicateSpaceNameError as error:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error
+    return SpaceResponse.from_entity(space=space)
+
+
+@router.patch(
+    "/spaces/{space_id}",
+    response_model=SpaceResponse,
+    dependencies=[Depends(require_admin)],
+)
+async def update_space(
+    space_id: str,
+    request: UpdateSpaceRequest,
+    use_case: Annotated[UpdateSpaceUseCase, Depends(get_update_space_use_case)],
+):
+    try:
+        space: Space = await use_case.execute(
+            command=UpdateSpaceCommand(
+                space_id=_parse_ulid(value=space_id),
+                names=request.names.to_value_object(),
+                floor=request.floor,
+            ),
+        )
+    except SpaceNotFoundError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
     except DuplicateSpaceNameError as error:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error
@@ -237,6 +294,21 @@ async def list_reservations_by_space(
     except SpaceNotFoundError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
     return [ReservationPublicResponse.from_view(view=view) for view in views]
+
+
+@router.get(
+    "/admin/reservations",
+    response_model=list[ReservationResponse],
+    dependencies=[Depends(require_admin)],
+)
+async def list_admin_reservations(
+    use_case: Annotated[ListAdminReservationsUseCase, Depends(get_list_admin_reservations_use_case)],
+    status_filter: Annotated[ReservationStatus | None, Query(alias="status")] = None,
+    space_id: Annotated[str | None, Query()] = None,
+):
+    parsed_space_id: ULID | None = _parse_ulid(value=space_id) if space_id is not None else None
+    reservations: list[Reservation] = await use_case.execute(status=status_filter, space_id=parsed_space_id)
+    return [ReservationResponse.from_entity(reservation=reservation) for reservation in reservations]
 
 
 @router.post(
