@@ -1,0 +1,29 @@
+{
+  "app": {
+    "subtitle": "교회 공간 예약 서비스"
+  },
+  "home": {
+    "actionsLabel": "서비스 진입",
+    "entry": {
+      "public": "예약 현황 조회",
+      "user": "로그인 · 예약하기",
+      "admin": "관리자"
+    }
+  },
+  "common": {
+    "backHome": "홈으로"
+  },
+  "placeholder": {
+    "comingSoon": "준비 중입니다."
+  },
+  "settings": {
+    "theme": "테마",
+    "language": "언어",
+    "menu": "설정",
+    "light": "라이트",
+    "dark": "다크",
+    "system": "시스템",
+    "korean": "한국어",
+    "english": "English"
+  }
+}

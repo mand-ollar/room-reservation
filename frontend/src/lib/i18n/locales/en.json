@@ -1,0 +1,29 @@
+{
+  "app": {
+    "subtitle": "Church space booking service"
+  },
+  "home": {
+    "actionsLabel": "Get started",
+    "entry": {
+      "public": "View reservations",
+      "user": "Sign in to book",
+      "admin": "Admin"
+    }
+  },
+  "common": {
+    "backHome": "Back to home"
+  },
+  "placeholder": {
+    "comingSoon": "Coming soon."
+  },
+  "settings": {
+    "theme": "Theme",
+    "language": "Language",
+    "menu": "Settings",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "korean": "한국어",
+    "english": "English"
+  }
+}
