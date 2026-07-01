@@ -1,6 +1,7 @@
 from ulid import ULID
 
 from app.reservation.domain.entities import Building
+from app.reservation.domain.value_objects import LocalizedNames
 from app.reservation.infrastructure.outbound.repositories.building.BuildingAlchemyEntity import BuildingAlchemyEntity
 
 
@@ -9,8 +10,7 @@ class BuildingMapper:
     def to_domain_entity(alchemy_entity: BuildingAlchemyEntity) -> Building:
         return Building(
             id=ULID.from_str(alchemy_entity.id),
-            name_ko=alchemy_entity.name_ko,
-            name_en=alchemy_entity.name_en,
+            names=LocalizedNames.from_dict(data=alchemy_entity.names),
             created_at=alchemy_entity.created_at,
         )
 
@@ -18,7 +18,6 @@ class BuildingMapper:
     def to_alchemy_entity(domain_entity: Building) -> BuildingAlchemyEntity:
         return BuildingAlchemyEntity(
             id=str(domain_entity.id),
-            name_ko=domain_entity.name_ko,
-            name_en=domain_entity.name_en,
+            names=domain_entity.names.to_dict(),
             created_at=domain_entity.created_at,
         )

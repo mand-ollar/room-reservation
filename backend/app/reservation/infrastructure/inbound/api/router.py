@@ -100,7 +100,7 @@ async def create_building(
 ):
     try:
         building: Building = await use_case.execute(
-            command=CreateBuildingCommand(name_ko=request.name_ko, name_en=request.name_en),
+            command=CreateBuildingCommand(names=request.names.to_value_object()),
         )
     except DuplicateBuildingNameError as error:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error
@@ -148,8 +148,7 @@ async def create_space(
         space: Space = await use_case.execute(
             command=CreateSpaceCommand(
                 building_id=_parse_ulid(value=request.building_id),
-                name_ko=request.name_ko,
-                name_en=request.name_en,
+                names=request.names.to_value_object(),
                 floor=request.floor,
             ),
         )

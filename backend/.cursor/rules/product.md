@@ -7,8 +7,8 @@
 - `User` (이름, 전화번호) ──< `Reservation` : 등록자(누가 예약했는지 식별)
 - `Building` (본당 / 비전랜드 / 드림랜드) ──< `Space` : 건물 1 : 공간 N
 - `Space` (중등부 / 고등부 / 초등부 ...) ──< `Reservation` : 어떤 공간 예약인지
-- `Building` / `Space` 이름은 **`name_ko`(한국어) + `name_en`(영어 라벨)** 분리 저장. UI locale에 맞게 클라이언트가 선택.
-- `Space`는 **`floor`(층, int)** 별도 보유 — 정렬·필터용. 이름에 포함된 층 표기와 중복될 수 있으나 canonical 값은 `floor`.
+- `Building` / `Space` 이름은 **`names` JSONB** (`{"ko": "...", "en": "..."}`) — locale별 동등 저장, DB 컬럼명에 특정 언어 하드코딩 없음. 프론트/API는 locale에 맞는 키 선택.
+- `Space`는 **`floor`(층, int)** 별도 보유 — 정렬·필터용.
 - 관리자(Admin)는 엔티티가 아님 — 단일 비밀번호로만 존재, 모든 도메인을 조정
 
 ### 모듈 구조
@@ -55,10 +55,10 @@
   - 하위 `Space`가 있는 `Building` 삭제 → 거부(409)
   - 예약이 걸린 `Space` 삭제 → `SpaceInUseError`(409) + DB FK(RESTRICT) 이중 보호
 - 이름 유니크:
-  - `Building`: `name_ko` 전역 유니크, `name_en` 전역 유니크
-  - `Space`: `UNIQUE(building_id, name_ko)`, `UNIQUE(building_id, name_en)`
+  - `Building`: `names->>'ko'`, `names->>'en'` 각각 전역 유니크 (expression index)
+  - `Space`: `(building_id, names->>'ko')`, `(building_id, names->>'en')` 각각 유니크
 - 초기 데이터: 시드 없이 빈 상태로 시작, 관리자가 CRUD로 등록 (운영 시 본당·비전랜드·드림랜드 및 공간 17개 등록됨)
-- 목록 조회는 공개 (예약 폼에서 선택해야 하므로). API 응답에 `name_ko`, `name_en` 모두 포함 — 프론트가 locale에 맞게 표시.
+- 목록 조회는 공개 (예약 폼에서 선택해야 하므로). API 응답에 `names` 객체 전체 포함 — 프론트가 locale에 맞게 표시.
 
 ## 예약 규칙
 
@@ -103,10 +103,10 @@ UI 흐름: **building 선택 → space 선택 → 해당 space 예약 목록**. 
 
 | 엔티티 | 필드 |
 |---|---|
-| `BuildingResponse` | `id`, `name_ko`, `name_en`, `created_at` |
-| `SpaceResponse` | `id`, `building_id`, `name_ko`, `name_en`, `floor`, `created_at` |
+| `BuildingResponse` | `id`, `names` (`{ko, en}`), `created_at` |
+| `SpaceResponse` | `id`, `building_id`, `names` (`{ko, en}`), `floor`, `created_at` |
 
-생성 요청(`POST /buildings`, `POST /spaces`)도 동일하게 `name_ko`, `name_en` (space는 `floor` 포함) 받음.
+생성 요청(`POST /buildings`, `POST /spaces`)도 `names: {ko, en}` (space는 `floor` 포함) 받음.
 
 ### 공개 예약 조회 응답 (`ReservationPublicResponse`)
 
@@ -124,5 +124,5 @@ UI 흐름: **building 선택 → space 선택 → 해당 space 예약 목록**. 
 ## 구현 상태
 
 - 완료: 인증/유저 도메인, 인프라(Docker, async SQLAlchemy, Alembic)
-- 완료: building / space 도메인 (관리자 CRUD + 공개 조회, `name_ko`/`name_en`/`floor`)
+- 완료: building / space 도메인 (관리자 CRUD + 공개 조회, `names` JSONB / `floor`)
 - 완료: reservation 도메인 — 생성/조회/시간변경/취소 + 관리자 승인/거부/조정·취소, 동시성(EXCLUDE) 확정·검증, space별 공개 조회(`GET /reservations/{space_id}`), 공개 조회 응답 개인정보 최소화(`ReservationPublicResponse`)

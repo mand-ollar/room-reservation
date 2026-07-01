@@ -16,10 +16,12 @@ class SpaceRepository(ABC):
     async def find_by_building_id(self, building_id: ULID) -> list[Space]: ...
 
     @abstractmethod
-    async def find_by_building_id_and_name_ko(self, building_id: ULID, name_ko: str) -> Space | None: ...
-
-    @abstractmethod
-    async def find_by_building_id_and_name_en(self, building_id: ULID, name_en: str) -> Space | None: ...
+    async def find_by_building_id_and_locale_name(
+        self,
+        building_id: ULID,
+        locale: str,
+        name: str,
+    ) -> Space | None: ...
 
     @abstractmethod
     async def save(self, entity: Space) -> Space: ...

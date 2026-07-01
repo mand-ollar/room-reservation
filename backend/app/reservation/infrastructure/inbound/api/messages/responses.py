@@ -4,21 +4,19 @@ from pydantic import BaseModel
 
 from app.reservation.application.use_cases.ListReservations import PublicReservationView
 from app.reservation.domain.entities import Building, Reservation, Space
-from app.reservation.domain.value_objects import ReservationStatus
+from app.reservation.domain.value_objects import LocalizedNames, ReservationStatus
 
 
 class BuildingResponse(BaseModel):
     id: str
-    name_ko: str
-    name_en: str
+    names: LocalizedNames
     created_at: datetime
 
     @classmethod
     def from_entity(cls, building: Building) -> "BuildingResponse":
         return cls(
             id=str(building.id),
-            name_ko=building.name_ko,
-            name_en=building.name_en,
+            names=building.names,
             created_at=building.created_at,
         )
 
@@ -26,8 +24,7 @@ class BuildingResponse(BaseModel):
 class SpaceResponse(BaseModel):
     id: str
     building_id: str
-    name_ko: str
-    name_en: str
+    names: LocalizedNames
     floor: int
     created_at: datetime
 
@@ -36,8 +33,7 @@ class SpaceResponse(BaseModel):
         return cls(
             id=str(space.id),
             building_id=str(space.building_id),
-            name_ko=space.name_ko,
-            name_en=space.name_en,
+            names=space.names,
             floor=space.floor,
             created_at=space.created_at,
         )

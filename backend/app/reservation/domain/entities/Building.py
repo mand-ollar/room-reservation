@@ -3,18 +3,18 @@ from datetime import datetime, timezone
 from pydantic import BaseModel
 from ulid import ULID
 
+from app.reservation.domain.value_objects import LocalizedNames
+
 
 class Building(BaseModel):
     id: ULID
-    name_ko: str
-    name_en: str
+    names: LocalizedNames
     created_at: datetime
 
     @classmethod
-    def create(cls, name_ko: str, name_en: str) -> "Building":
+    def create(cls, names: LocalizedNames) -> "Building":
         return cls(
             id=ULID(),
-            name_ko=name_ko,
-            name_en=name_en,
+            names=names,
             created_at=datetime.now(tz=timezone.utc),
         )

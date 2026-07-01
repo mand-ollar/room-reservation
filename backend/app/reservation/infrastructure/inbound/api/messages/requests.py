@@ -2,16 +2,24 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from app.reservation.domain.value_objects import LocalizedNames
+
+
+class LocalizedNamesRequest(BaseModel):
+    ko: str
+    en: str
+
+    def to_value_object(self) -> LocalizedNames:
+        return LocalizedNames(ko=self.ko, en=self.en)
+
 
 class CreateBuildingRequest(BaseModel):
-    name_ko: str
-    name_en: str
+    names: LocalizedNamesRequest
 
 
 class CreateSpaceRequest(BaseModel):
     building_id: str
-    name_ko: str
-    name_en: str
+    names: LocalizedNamesRequest
     floor: int
 
 
