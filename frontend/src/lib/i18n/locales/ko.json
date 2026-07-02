@@ -5,10 +5,11 @@
   "home": {
     "actionsLabel": "서비스 진입",
     "entry": {
-      "public": "예약 현황 조회",
-      "user": "로그인 · 예약하기",
+      "reservation": "예약",
+      "login": "로그인",
       "admin": "관리자"
-    }
+    },
+    "welcome": "{{name}}님, 환영합니다"
   },
   "common": {
     "backHome": "홈으로"
@@ -85,7 +86,7 @@
   },
   "auth": {
     "login": {
-      "title": "로그인 · 예약하기",
+      "title": "로그인",
       "nameLabel": "이름",
       "namePlaceholder": "홍길동",
       "phoneLabel": "전화번호",

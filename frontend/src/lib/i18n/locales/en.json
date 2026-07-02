@@ -5,10 +5,11 @@
   "home": {
     "actionsLabel": "Get started",
     "entry": {
-      "public": "View reservations",
-      "user": "Sign in to book",
+      "reservation": "Reservations",
+      "login": "Sign in",
       "admin": "Admin"
-    }
+    },
+    "welcome": "Welcome, {{name}}"
   },
   "common": {
     "backHome": "Back to home"
@@ -85,7 +86,7 @@
   },
   "auth": {
     "login": {
-      "title": "Sign in to book",
+      "title": "Sign in",
       "nameLabel": "Name",
       "namePlaceholder": "Jane Doe",
       "phoneLabel": "Phone number",

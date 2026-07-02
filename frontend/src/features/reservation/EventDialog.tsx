@@ -361,7 +361,7 @@ export function EventDialog({
             <p className="event-dialog__login-prompt">
               {t("reservation.event.loginRequired")}{" "}
               <Link className="text-link" to={paths.login}>
-                {t("home.entry.user")}
+                {t("home.entry.login")}
               </Link>
             </p>
           ) : null}

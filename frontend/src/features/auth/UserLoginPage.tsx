@@ -1,9 +1,8 @@
 import { useState, type SubmitEventHandler } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 
 import { ApiError } from "@/api/client";
-import { ReservationLayout } from "@/features/reservation/ReservationLayout";
 import { useAuth } from "@/lib/auth/useAuth";
 import { paths } from "@/lib/brand";
 
@@ -33,7 +32,8 @@ const formatPhoneDisplay = (digits: string): string => {
 
 export function UserLoginPage() {
   const { t } = useTranslation();
-  const { user, isInitializing, isSubmitting, login, logout } = useAuth();
+  const navigate = useNavigate();
+  const { user, isInitializing, isSubmitting, login } = useAuth();
   const [name, setName] = useState<string>("");
   const [phoneDigits, setPhoneDigits] = useState<string>("");
   const [errorKey, setErrorKey] = useState<LoginErrorKey | null>(null);
@@ -56,6 +56,7 @@ export function UserLoginPage() {
     void (async () => {
       try {
         await login(trimmedName, phoneDigits);
+        navigate(paths.home);
       } catch (error: unknown) {
         if (error instanceof ApiError && error.status === 401) {
           setErrorKey("nameMismatch");
@@ -76,24 +77,7 @@ export function UserLoginPage() {
   }
 
   if (user) {
-    return (
-      <div className="booking-page">
-        <div className="booking-page__toolbar">
-          <p className="booking-page__welcome">
-            {t("auth.login.welcome", { name: user.name })}
-          </p>
-          <button
-            className="booking-page__logout"
-            type="button"
-            onClick={logout}
-          >
-            {t("auth.login.logout")}
-          </button>
-        </div>
-
-        <ReservationLayout title={t("reservation.booking.title")} />
-      </div>
-    );
+    return <Navigate to={paths.home} replace />;
   }
 
   return (
