@@ -8,7 +8,7 @@ import { useLocationPicker } from "./useLocationPicker";
 
 type LocationPickerProps = {
   selectedSpaceId?: string | null;
-  onSpaceSelect?: (spaceId: string) => void;
+  onSpaceSelect?: (spaceId: string | null) => void;
 };
 
 type PickerListItemProps = {

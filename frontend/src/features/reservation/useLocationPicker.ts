@@ -28,7 +28,7 @@ type UseLocationPickerResult = {
 };
 
 export function useLocationPicker(
-  onSpaceSelect?: (spaceId: string) => void,
+  onSpaceSelect?: (spaceId: string | null) => void,
 ): UseLocationPickerResult {
   const [buildings, setBuildings] = useState<BuildingResponse[]>([]);
   const [spaces, setSpaces] = useState<SpaceResponse[]>([]);
@@ -114,9 +114,14 @@ export function useLocationPicker(
     };
   }, [selectedBuildingId]);
 
+  const clearSpaceSelection = (): void => {
+    setSelectedSpaceId(null);
+    onSpaceSelect?.(null);
+  };
+
   const selectBuilding = (buildingId: string): void => {
     setSelectedFloor(null);
-    setSelectedSpaceId(null);
+    clearSpaceSelection();
     setView("floors");
 
     if (buildingId !== selectedBuildingId) {
@@ -127,7 +132,7 @@ export function useLocationPicker(
 
   const selectFloor = (floor: number): void => {
     setSelectedFloor(floor);
-    setSelectedSpaceId(null);
+    clearSpaceSelection();
     setView("spaces");
   };
 
@@ -142,13 +147,13 @@ export function useLocationPicker(
 
   const goToBuildings = (): void => {
     setSelectedFloor(null);
-    setSelectedSpaceId(null);
+    clearSpaceSelection();
     setView("buildings");
   };
 
   const goToFloors = (): void => {
     setSelectedFloor(null);
-    setSelectedSpaceId(null);
+    clearSpaceSelection();
     setView("floors");
   };
 
