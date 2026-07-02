@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEv
 import { useTranslation } from "react-i18next";
 
 import { useAppLanguage } from "@/lib/locale";
+import { useAuth } from "@/lib/auth/useAuth";
 import type { AppLanguage } from "@/lib/i18n/config";
 import type { ThemePreference } from "@/lib/theme/storage";
 import { useTheme } from "@/lib/theme/useTheme";
@@ -60,6 +61,7 @@ export function HeaderMenu() {
 
   const { language, setLanguage } = useAppLanguage();
   const { themePreference, setThemePreference } = useTheme();
+  const { user, isInitializing, logout } = useAuth();
 
   const languageOptions: readonly MenuOption<AppLanguage>[] = [
     { value: "ko", label: t("settings.korean") },
@@ -114,6 +116,50 @@ export function HeaderMenu() {
     setActiveSubmenu(null);
   };
 
+  const closeSubmenu = (): void => {
+    setActiveSubmenu(null);
+  };
+
+  const handleSubmenuPointerEnter = (
+    event: ReactPointerEvent<HTMLElement>,
+    submenuId: SubmenuId,
+  ): void => {
+    if (isTouchLikePointer(event.pointerType) || !canHover()) {
+      return;
+    }
+    openSubmenu(submenuId);
+  };
+
+  const handleNonSubmenuPointerEnter = (
+    event: ReactPointerEvent<HTMLElement>,
+  ): void => {
+    if (isTouchLikePointer(event.pointerType) || !canHover()) {
+      return;
+    }
+    closeSubmenu();
+  };
+
+  const handleSubmenuPointerLeave = (
+    event: ReactPointerEvent<HTMLElement>,
+    submenuId: SubmenuId,
+  ): void => {
+    if (isTouchLikePointer(event.pointerType) || !canHover()) {
+      return;
+    }
+
+    const relatedTarget: EventTarget | null = event.relatedTarget;
+    if (
+      relatedTarget instanceof Node &&
+      event.currentTarget.contains(relatedTarget)
+    ) {
+      return;
+    }
+
+    setActiveSubmenu((current: SubmenuId | null) =>
+      current === submenuId ? null : current,
+    );
+  };
+
   const openSubmenu = (submenuId: SubmenuId): void => {
     setActiveSubmenu(submenuId);
   };
@@ -134,10 +180,10 @@ export function HeaderMenu() {
     <div
       className="header-menu__item"
       onPointerEnter={(event) => {
-        if (isTouchLikePointer(event.pointerType) || !canHover()) {
-          return;
-        }
-        openSubmenu(submenuId);
+        handleSubmenuPointerEnter(event, submenuId);
+      }}
+      onPointerLeave={(event) => {
+        handleSubmenuPointerLeave(event, submenuId);
       }}
     >
       <button
@@ -218,6 +264,30 @@ export function HeaderMenu() {
             themePreference,
             setThemePreference,
           )}
+          {!isInitializing && user ? (
+            <div
+              className="header-menu__footer"
+              onPointerEnter={handleNonSubmenuPointerEnter}
+            >
+              <div
+                className="header-menu__divider"
+                role="separator"
+                aria-hidden="true"
+              />
+              <button
+                type="button"
+                role="menuitem"
+                className="header-menu__action"
+                onClick={() => {
+                  logout();
+                  closeMenu();
+                }}
+                onPointerUp={blurIfTouchUp}
+              >
+                {t("auth.login.logout")}
+              </button>
+            </div>
+          ) : null}
         </div>
       )}
     </div>
