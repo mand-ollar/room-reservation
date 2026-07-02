@@ -146,8 +146,9 @@
 }
 
 .location-picker__dropdown-select:focus-visible {
-  outline: 2px solid var(--color-focus-ring);
-  outline-offset: 1px;
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: inset 0 0 0 2px var(--color-focus-ring);
 }
 
 .location-picker__dropdown-error {
@@ -416,10 +417,60 @@
   outline-offset: 2px;
 }
 
+.week-calendar__date-picker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  min-height: 2rem;
+  border-radius: var(--radius-full);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.week-calendar__date-picker-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  pointer-events: none;
+}
+
+.week-calendar__date-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: inherit;
+  opacity: 0;
+  cursor: pointer;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .week-calendar__date-picker:hover {
+    background: var(--color-control-bg);
+    color: var(--color-text-primary);
+  }
+}
+
+.week-calendar__date-picker:active {
+  background: var(--color-control-bg);
+}
+
+.week-calendar__date-picker:has(.week-calendar__date-input:focus-visible) {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
 .week-calendar__range {
   margin: 0;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-regular);
   color: var(--color-text-primary);
 }
 
@@ -774,6 +825,22 @@
   gap: var(--space-4);
 }
 
+.event-dialog__panel--compact {
+  position: relative;
+}
+
+.event-dialog__panel--compact .event-dialog__toolbar {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 1;
+  min-height: 0;
+}
+
+.event-dialog__panel--compact .event-dialog__detail-title {
+  padding-right: 2.5rem;
+}
+
 .event-dialog__toolbar {
   display: flex;
   align-items: center;
@@ -1040,40 +1107,118 @@
 /* Mobile */
 
 @media (max-width: 768px) {
+  html:has(.reservation-page),
+  html:has(.booking-page) {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body:has(.reservation-page),
+  body:has(.booking-page) {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  #root:has(.reservation-page),
+  #root:has(.booking-page) {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .app-shell:has(.reservation-page),
+  .app-shell:has(.booking-page) {
+    height: 100svh;
+    max-height: 100svh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .app-shell:has(.reservation-page) .app-header,
+  .app-shell:has(.booking-page) .app-header {
+    flex-shrink: 0;
+  }
+
   .app-main:has(.reservation-page),
   .app-main:has(.booking-page) {
+    flex: 1 1 0;
+    min-height: 0;
+    height: auto;
+    max-height: none;
     padding: var(--space-2) var(--space-3);
+    padding-bottom: max(var(--space-2), env(safe-area-inset-bottom));
+    overflow: hidden;
   }
 
   .reservation-page {
     gap: var(--space-2);
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .reservation-page__header {
-    display: none;
+    flex-shrink: 0;
+  }
+
+  .reservation-page__header .page-title {
+    margin: 0;
+    font-size: var(--font-size-lg);
   }
 
   .reservation-layout {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
     gap: var(--space-2);
+    min-height: 0;
+    overflow: hidden;
   }
 
   .reservation-layout__location-bar,
   .reservation-layout__locations {
-    flex-shrink: 0;
+    flex: 0 0 auto;
     min-height: 0;
     padding: var(--space-2) 0;
     border: none;
     border-radius: 0;
     background: transparent;
     box-shadow: none;
-    overflow: visible;
+    overflow: hidden;
   }
 
   .reservation-layout__schedule {
-    padding: var(--space-3);
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
     min-height: 0;
+    padding: var(--space-2);
+    overflow: hidden;
+  }
+
+  .reservation-schedule {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .booking-page {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    gap: var(--space-2);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .booking-page > .reservation-page {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .booking-page__toolbar {
+    flex-shrink: 0;
   }
 
   .location-picker {
@@ -1085,6 +1230,7 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--space-2);
+    padding-inline: 1px;
   }
 
   .location-picker__drilldown {
@@ -1101,19 +1247,46 @@
   .week-calendar {
     --calendar-hour-height: 2.75rem;
     --calendar-time-gutter: 2.75rem;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .week-calendar__toolbar {
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+    gap: var(--space-2);
+  }
+
+  .week-calendar__inline-error {
+    flex-shrink: 0;
+  }
+
+  .week-calendar__frame {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .week-calendar--day-view .week-calendar__toolbar {
-    justify-content: center;
+    justify-content: space-between;
   }
 
   .week-calendar--day-view .week-calendar__range {
     font-size: var(--font-size-md);
-    text-align: center;
+    text-align: right;
   }
 
   .week-calendar--day-view .week-calendar__frame {
     overflow-x: hidden;
+  }
+
+  .week-calendar__scroll {
+    flex: 1 1 0;
+    min-height: 0;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
   }
 
   .week-calendar--day-view .week-calendar__day-headers {
@@ -1135,9 +1308,15 @@
   }
 
   .week-calendar__today-button,
-  .week-calendar__nav-button {
+  .week-calendar__nav-button,
+  .week-calendar__date-picker {
     min-height: 2.75rem;
     min-width: 2.75rem;
+  }
+
+  .week-calendar__today-button {
+    min-width: auto;
+    padding: 0 var(--space-3);
   }
 
   .event-dialog__panel {

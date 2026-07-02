@@ -47,6 +47,7 @@
       "today": "오늘",
       "prevWeek": "이전 주",
       "nextWeek": "다음 주",
+      "jumpToDate": "날짜로 이동",
       "errors": {
         "loadReservations": "예약 현황을 불러오지 못했습니다."
       }

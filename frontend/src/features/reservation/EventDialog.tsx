@@ -301,6 +301,15 @@ export function EventDialog({
 
   const formStatus: ReservationStatus = reservation?.status ?? "PENDING";
 
+  const isCompactLayout: boolean = !isLoggedIn;
+  const panelClassName: string = [
+    "event-dialog__panel",
+    "event-dialog__panel--detail",
+    isCompactLayout ? "event-dialog__panel--compact" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <dialog
       ref={dialogRef}
@@ -309,26 +318,25 @@ export function EventDialog({
       onClick={handleBackdropClick}
     >
       {state && showForm ? (
-        <form
-          className="event-dialog__panel event-dialog__panel--detail"
-          onSubmit={handleSubmit}
-        >
+        <form className={panelClassName} onSubmit={handleSubmit}>
           <header className="event-dialog__toolbar">
-            <div className="event-dialog__toolbar-actions">
-              {(isCreateMode ? isLoggedIn : canMutate) ? (
-                <button
-                  className="event-dialog__submit"
-                  type="submit"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting
-                    ? t("reservation.event.saving")
-                    : isCreateMode
-                      ? t("reservation.event.create")
-                      : t("reservation.event.update")}
-                </button>
-              ) : null}
-            </div>
+            {!isCompactLayout ? (
+              <div className="event-dialog__toolbar-actions">
+                {(isCreateMode ? isLoggedIn : canMutate) ? (
+                  <button
+                    className="event-dialog__submit"
+                    type="submit"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting
+                      ? t("reservation.event.saving")
+                      : isCreateMode
+                        ? t("reservation.event.create")
+                        : t("reservation.event.update")}
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
             <button
               type="button"
               className="event-dialog__icon-button"
@@ -417,36 +425,38 @@ export function EventDialog({
       ) : null}
 
       {state && reservation && !showForm ? (
-        <div className="event-dialog__panel event-dialog__panel--detail">
+        <div className={panelClassName}>
           <header className="event-dialog__toolbar">
-            <div className="event-dialog__toolbar-actions">
-              {canMutate ? (
-                <>
-                  <button
-                    type="button"
-                    className="event-dialog__icon-button"
-                    onClick={() => {
-                      setIsEditing(true);
-                    }}
-                    onPointerUp={blurIfTouch}
-                    disabled={isSubmitting}
-                    aria-label={t("reservation.event.editTitle")}
-                  >
-                    <EditIcon />
-                  </button>
-                  <button
-                    type="button"
-                    className="event-dialog__icon-button event-dialog__icon-button--danger"
-                    onClick={handleDelete}
-                    onPointerUp={blurIfTouch}
-                    disabled={isSubmitting}
-                    aria-label={t("reservation.event.delete")}
-                  >
-                    <DeleteIcon />
-                  </button>
-                </>
-              ) : null}
-            </div>
+            {!isCompactLayout ? (
+              <div className="event-dialog__toolbar-actions">
+                {canMutate ? (
+                  <>
+                    <button
+                      type="button"
+                      className="event-dialog__icon-button"
+                      onClick={() => {
+                        setIsEditing(true);
+                      }}
+                      onPointerUp={blurIfTouch}
+                      disabled={isSubmitting}
+                      aria-label={t("reservation.event.editTitle")}
+                    >
+                      <EditIcon />
+                    </button>
+                    <button
+                      type="button"
+                      className="event-dialog__icon-button event-dialog__icon-button--danger"
+                      onClick={handleDelete}
+                      onPointerUp={blurIfTouch}
+                      disabled={isSubmitting}
+                      aria-label={t("reservation.event.delete")}
+                    >
+                      <DeleteIcon />
+                    </button>
+                  </>
+                ) : null}
+              </div>
+            ) : null}
             <button
               type="button"
               className="event-dialog__icon-button"

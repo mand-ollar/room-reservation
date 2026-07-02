@@ -145,36 +145,52 @@ export function getEventSegmentsForWeek(
   return segments;
 }
 
-export function formatWeekRange(weekStart: Date, locale: string): string {
-  const weekEnd: Date = new Date(weekStart);
-  weekEnd.setDate(weekEnd.getDate() + 6);
+export function getDominantMonthInWeek(weekDays: Date[]): Date {
+  const counts: Map<string, { year: number; month: number; count: number }> =
+    new Map();
 
-  const languageTag: string = locale === "en" ? "en-US" : "ko-KR";
-  const monthDayFormatter: Intl.DateTimeFormat = new Intl.DateTimeFormat(
-    languageTag,
-    { month: "long", day: "numeric" },
-  );
-  const yearFormatter: Intl.DateTimeFormat = new Intl.DateTimeFormat(
-    languageTag,
-    { year: "numeric" },
-  );
+  weekDays.forEach((day: Date) => {
+    const year: number = day.getFullYear();
+    const month: number = day.getMonth();
+    const key: string = `${year}-${month}`;
+    const existing = counts.get(key);
 
-  const startLabel: string = monthDayFormatter.format(weekStart);
-  const endLabel: string = monthDayFormatter.format(weekEnd);
-  const yearLabel: string = yearFormatter.format(weekEnd);
+    if (existing) {
+      existing.count += 1;
+      return;
+    }
 
-  return `${startLabel} – ${endLabel}, ${yearLabel}`;
+    counts.set(key, { year, month, count: 1 });
+  });
+
+  let dominant: { year: number; month: number; count: number } = {
+    year: weekDays[0]?.getFullYear() ?? 0,
+    month: weekDays[0]?.getMonth() ?? 0,
+    count: 0,
+  };
+
+  counts.forEach((entry) => {
+    if (entry.count > dominant.count) {
+      dominant = entry;
+    }
+  });
+
+  return new Date(dominant.year, dominant.month, 1);
 }
 
-export function formatDayLabel(day: Date, locale: string): string {
+export function formatMonthYear(date: Date, locale: string): string {
   const languageTag: string = locale === "en" ? "en-US" : "ko-KR";
 
   return new Intl.DateTimeFormat(languageTag, {
-    weekday: "long",
     month: "long",
-    day: "numeric",
     year: "numeric",
-  }).format(day);
+  }).format(date);
+}
+
+export function normalizeCalendarDate(date: Date): Date {
+  const normalized: Date = new Date(date);
+  normalized.setHours(0, 0, 0, 0);
+  return normalized;
 }
 
 export function formatTimeRange(
@@ -246,6 +262,19 @@ export function toDatetimeLocalValue(date: Date): string {
   const pad = (value: number): string => String(value).padStart(2, "0");
 
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+export function toDateLocalValue(date: Date): string {
+  const pad = (value: number): string => String(value).padStart(2, "0");
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+export function fromDateLocalValue(value: string): Date {
+  const [year, month, day] = value.split("-").map(Number);
+  const date: Date = new Date(year, month - 1, day);
+  date.setHours(0, 0, 0, 0);
+  return date;
 }
 
 export function fromDatetimeLocalValue(value: string): Date {

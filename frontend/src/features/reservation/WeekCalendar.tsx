@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type PointerEvent } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { ReservationPublicResponse, ReservationStatus } from "@/api/types";
@@ -6,11 +6,12 @@ import { useAppLocale } from "@/lib/locale";
 
 import {
   addWeeks,
-  formatDayLabel,
   formatHourLabel,
+  formatMonthYear,
   formatTimezoneOffset,
   formatTimeRange,
-  formatWeekRange,
+  fromDateLocalValue,
+  getDominantMonthInWeek,
   getEventSegmentsForWeek,
   getSlotTimeFromClick,
   getWeekDays,
@@ -19,7 +20,9 @@ import {
   isCalendarVisibleStatus,
   isSameDay,
   MINUTES_PER_DAY,
+  normalizeCalendarDate,
   reservationOverlapsWeek,
+  toDateLocalValue,
   toIsoString,
   isSamePublicReservation,
   type CalendarDraftPreview,
@@ -66,7 +69,7 @@ export function WeekCalendar({
   const hasScrolledInitiallyRef = useRef<boolean>(false);
   const pointerStartRef = useRef<PointerPosition | null>(null);
 
-  const [weekStart, setWeekStart] = useState<Date>(() => getWeekStart(new Date()));
+  const [focusDate, setFocusDate] = useState<Date>(() => normalizeCalendarDate(new Date()));
   const [now, setNow] = useState<Date>(() => new Date());
   const [isDayView, setIsDayView] = useState<boolean>(() =>
     typeof window !== "undefined"
@@ -74,29 +77,25 @@ export function WeekCalendar({
       : false,
   );
 
+  const weekStart: Date = useMemo(() => getWeekStart(focusDate), [focusDate]);
   const weekDays: Date[] = useMemo(() => getWeekDays(weekStart), [weekStart]);
-  const today: Date = useMemo(() => {
-    const current: Date = new Date();
-    current.setHours(0, 0, 0, 0);
-    return current;
-  }, []);
+  const today: Date = useMemo(() => normalizeCalendarDate(new Date()), []);
 
   const displayDays: Date[] = useMemo(
-    () => (isDayView ? [today] : weekDays),
-    [isDayView, today, weekDays],
+    () => (isDayView ? [focusDate] : weekDays),
+    [isDayView, focusDate, weekDays],
   );
 
-  const filterWeekStart: Date = useMemo(
-    () => (isDayView ? getWeekStart(today) : weekStart),
-    [isDayView, today, weekStart],
-  );
+  const filterWeekStart: Date = useMemo(() => weekStart, [weekStart]);
 
-  const headerLabel: string = useMemo(
-    () =>
-      isDayView
-        ? formatDayLabel(today, i18n.language)
-        : formatWeekRange(weekStart, i18n.language),
-    [isDayView, today, weekStart, i18n.language],
+  const headerLabel: string = useMemo(() => {
+    const dominantMonth: Date = getDominantMonthInWeek(displayDays);
+    return formatMonthYear(dominantMonth, i18n.language);
+  }, [displayDays, i18n.language]);
+
+  const datePickerValue: string = useMemo(
+    () => toDateLocalValue(focusDate),
+    [focusDate],
   );
 
   const timezoneLabel: string = useMemo(() => formatTimezoneOffset(), []);
@@ -242,15 +241,25 @@ export function WeekCalendar({
   }, []);
 
   const goToPreviousWeek = (): void => {
-    setWeekStart((current: Date) => addWeeks(current, -1));
+    setFocusDate((current: Date) => addWeeks(current, -1));
   };
 
   const goToNextWeek = (): void => {
-    setWeekStart((current: Date) => addWeeks(current, 1));
+    setFocusDate((current: Date) => addWeeks(current, 1));
   };
 
   const goToToday = (): void => {
-    setWeekStart(getWeekStart(new Date()));
+    setFocusDate(normalizeCalendarDate(new Date()));
+  };
+
+  const handleDatePick = (event: ChangeEvent<HTMLInputElement>): void => {
+    const value: string = event.target.value;
+    if (!value) {
+      return;
+    }
+
+    const picked: Date = fromDateLocalValue(value);
+    setFocusDate(normalizeCalendarDate(picked));
   };
 
   const showInitialLoad: boolean =
@@ -325,33 +334,45 @@ export function WeekCalendar({
   return (
     <div className={`week-calendar${isDayView ? " week-calendar--day-view" : ""}`}>
       <header className="week-calendar__toolbar">
-        {!isDayView ? (
-          <div className="week-calendar__nav">
-            <button
-              type="button"
-              className="week-calendar__today-button"
-              onClick={goToToday}
-            >
-              {t("reservation.schedule.today")}
-            </button>
-            <button
-              type="button"
-              className="week-calendar__nav-button"
-              onClick={goToPreviousWeek}
-              aria-label={t("reservation.schedule.prevWeek")}
-            >
-              ‹
-            </button>
-            <button
-              type="button"
-              className="week-calendar__nav-button"
-              onClick={goToNextWeek}
-              aria-label={t("reservation.schedule.nextWeek")}
-            >
-              ›
-            </button>
-          </div>
-        ) : null}
+        <div className="week-calendar__nav">
+          <button
+            type="button"
+            className="week-calendar__today-button"
+            onClick={goToToday}
+          >
+            {t("reservation.schedule.today")}
+          </button>
+          {!isDayView ? (
+            <>
+              <button
+                type="button"
+                className="week-calendar__nav-button"
+                onClick={goToPreviousWeek}
+                aria-label={t("reservation.schedule.prevWeek")}
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="week-calendar__nav-button"
+                onClick={goToNextWeek}
+                aria-label={t("reservation.schedule.nextWeek")}
+              >
+                ›
+              </button>
+            </>
+          ) : null}
+          <label className="week-calendar__date-picker">
+            <CalendarIcon />
+            <input
+              type="date"
+              className="week-calendar__date-input"
+              value={datePickerValue}
+              onChange={handleDatePick}
+              aria-label={t("reservation.schedule.jumpToDate")}
+            />
+          </label>
+        </div>
         <p className="week-calendar__range">{headerLabel}</p>
       </header>
 
@@ -509,5 +530,25 @@ export function WeekCalendar({
         </div>
       </div>
     </div>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="week-calendar__date-picker-icon"
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <path d="M16 2v4" />
+      <path d="M8 2v4" />
+      <path d="M3 10h18" />
+    </svg>
   );
 }

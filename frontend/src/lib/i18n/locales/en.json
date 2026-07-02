@@ -47,6 +47,7 @@
       "today": "Today",
       "prevWeek": "Previous week",
       "nextWeek": "Next week",
+      "jumpToDate": "Jump to date",
       "errors": {
         "loadReservations": "Could not load reservations."
       }
