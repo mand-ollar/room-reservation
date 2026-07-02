@@ -17,6 +17,13 @@ alwaysApply: true
 - 모바일: 맥과 **같은 Wi‑Fi/핫스팟** 필요. 공공 Wi‑Fi(client isolation)에서는 LAN 접속 불가.
 - 모바일 UI (`≤768px`): 예약 화면 건물/층/공간 dropdown, 캘린더 오늘 day view, 터치 최적화(hover guard·tap blur). 페이지 제목 표시. 달력 시간 그리드만 스크롤(`100svh` + flex 체인). 로그아웃 시 이벤트 다이얼로그 compact 레이아웃
 
+## 배포 (Orange Pi / 홈 서버)
+
+- `deploy/` — Docker Compose (nginx + API + Postgres), `deploy/README.md` 참고
+- 프론트: `frontend/.env.production`에 `VITE_API_URL=/api` → `pnpm build` → `frontend/dist/`
+- nginx가 `/` 정적 서빙, `/api/` → API `:8000` 프록시 (API·DB는 호스트 포트 미노출)
+- 실행: `deploy/up.sh` 또는 `cd deploy && docker compose up -d --build`
+
 ## 구현 상태
 
 | 영역 | 상태 | 비고 |
