@@ -43,6 +43,7 @@ export type ReservationPublicResponse = {
   start_at: string;
   end_at: string;
   user_name: string;
+  memo?: string | null;
 };
 
 export type ReservationResponse = {
@@ -54,6 +55,7 @@ export type ReservationResponse = {
   end_at: string;
   created_at: string;
   updated_at: string;
+  memo?: string | null;
 };
 
 export type HealthResponse = {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { fetchReservationsBySpace } from "@/api/reservations";
 import { ApiError } from "@/api/client";
@@ -7,10 +7,20 @@ import type { ReservationPublicResponse } from "@/api/types";
 const reservationsBySpaceId: Map<string, ReservationPublicResponse[]> =
   new Map<string, ReservationPublicResponse[]>();
 
+const invalidationListeners: Set<() => void> = new Set<() => void>();
+
+export function invalidateSpaceReservations(spaceId: string): void {
+  reservationsBySpaceId.delete(spaceId);
+  invalidationListeners.forEach((listener: () => void) => {
+    listener();
+  });
+}
+
 type UseSpaceReservationsResult = {
   reservations: ReservationPublicResponse[];
   isLoading: boolean;
   errorKey: "loadReservations" | null;
+  refetch: () => void;
 };
 
 export function useSpaceReservations(
@@ -23,6 +33,21 @@ export function useSpaceReservations(
     () => (spaceId ? !reservationsBySpaceId.has(spaceId) : false),
   );
   const [errorKey, setErrorKey] = useState<"loadReservations" | null>(null);
+  const [fetchVersion, setFetchVersion] = useState<number>(0);
+
+  const refetch = useCallback((): void => {
+    if (spaceId) {
+      reservationsBySpaceId.delete(spaceId);
+    }
+    setFetchVersion((current: number) => current + 1);
+  }, [spaceId]);
+
+  useEffect(() => {
+    invalidationListeners.add(refetch);
+    return () => {
+      invalidationListeners.delete(refetch);
+    };
+  }, [refetch]);
 
   useEffect(() => {
     if (!spaceId) {
@@ -69,15 +94,16 @@ export function useSpaceReservations(
     return () => {
       active = false;
     };
-  }, [spaceId]);
+  }, [spaceId, fetchVersion]);
 
   if (!spaceId) {
     return {
       reservations: [],
       isLoading: false,
       errorKey: null,
+      refetch: () => undefined,
     };
   }
 
-  return { reservations, isLoading, errorKey };
+  return { reservations, isLoading, errorKey, refetch };
 }

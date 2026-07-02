@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { ReservationPublicResponse, ReservationStatus } from "@/api/types";
@@ -11,19 +11,28 @@ import {
   formatTimeRange,
   formatWeekRange,
   getEventSegmentsForWeek,
+  getSlotTimeFromClick,
   getWeekDays,
   getWeekStart,
   HOURS_PER_DAY,
+  isCalendarVisibleStatus,
   isSameDay,
   MINUTES_PER_DAY,
   reservationOverlapsWeek,
+  toIsoString,
+  isSamePublicReservation,
+  type CalendarDraftPreview,
   type CalendarEventSegment,
+  type SlotTimeRange,
 } from "./calendarUtils";
 import { useSpaceReservations } from "./useSpaceReservations";
 
 type WeekCalendarProps = {
   spaceId: string | null;
   currentUserName: string | null;
+  draftPreview?: CalendarDraftPreview | null;
+  onSlotSelect?: (range: SlotTimeRange) => void;
+  onEventSelect?: (reservation: ReservationPublicResponse) => void;
 };
 
 const DEFAULT_SCROLL_HOUR = 8;
@@ -35,7 +44,13 @@ const statusClassName: Record<ReservationStatus, string> = {
   CANCELLED: "week-calendar__event--cancelled",
 };
 
-export function WeekCalendar({ spaceId, currentUserName }: WeekCalendarProps) {
+export function WeekCalendar({
+  spaceId,
+  currentUserName,
+  draftPreview,
+  onSlotSelect,
+  onEventSelect,
+}: WeekCalendarProps) {
   const { t, i18n } = useTranslation();
   const locale: string = useAppLocale();
   const { reservations, isLoading, errorKey } = useSpaceReservations(spaceId);
@@ -68,16 +83,58 @@ export function WeekCalendar({ spaceId, currentUserName }: WeekCalendarProps) {
   );
 
   const visibleReservations: ReservationPublicResponse[] = useMemo(
-    () =>
-      reservations.filter((reservation: ReservationPublicResponse) =>
-        reservationOverlapsWeek(
-          reservation.start_at,
-          reservation.end_at,
-          weekStart,
-        ),
-      ),
-    [reservations, weekStart],
+    () => {
+      const filtered: ReservationPublicResponse[] = reservations.filter(
+        (reservation: ReservationPublicResponse) =>
+          isCalendarVisibleStatus(reservation.status) &&
+          reservationOverlapsWeek(
+            reservation.start_at,
+            reservation.end_at,
+            weekStart,
+          ),
+      );
+
+      if (!draftPreview?.excludeReservation) {
+        return filtered;
+      }
+
+      return filtered.filter(
+        (reservation: ReservationPublicResponse) =>
+          !isSamePublicReservation(reservation, draftPreview.excludeReservation!),
+      );
+    },
+    [reservations, weekStart, draftPreview],
   );
+
+  const draftSegments: CalendarEventSegment[] = useMemo(() => {
+    if (!draftPreview) {
+      return [];
+    }
+
+    const overlapsWeek: boolean = reservationOverlapsWeek(
+      toIsoString(draftPreview.startAt),
+      toIsoString(draftPreview.endAt),
+      weekStart,
+    );
+
+    if (!overlapsWeek) {
+      return [];
+    }
+
+    const draftReservation: ReservationPublicResponse = {
+      status: "PENDING",
+      start_at: toIsoString(draftPreview.startAt),
+      end_at: toIsoString(draftPreview.endAt),
+      user_name: draftPreview.userName ?? "",
+    };
+
+    return getEventSegmentsForWeek(
+      draftReservation,
+      weekDays,
+      true,
+      "draft",
+    );
+  }, [draftPreview, weekDays, weekStart]);
 
   const eventSegments: CalendarEventSegment[] = useMemo(() => {
     return visibleReservations.flatMap(
@@ -159,6 +216,38 @@ export function WeekCalendar({ spaceId, currentUserName }: WeekCalendarProps) {
   const showInitialLoad: boolean =
     spaceId !== null && isLoading && reservations.length === 0;
 
+  const isInteractive: boolean =
+    spaceId !== null &&
+    (onSlotSelect !== undefined || onEventSelect !== undefined);
+
+  const handleColumnClick = (
+    event: MouseEvent<HTMLDivElement>,
+    day: Date,
+  ): void => {
+    if (!onSlotSelect) {
+      return;
+    }
+
+    if ((event.target as HTMLElement).closest(".week-calendar__event")) {
+      return;
+    }
+
+    const range: SlotTimeRange = getSlotTimeFromClick(
+      day,
+      event.currentTarget,
+      event.clientY,
+    );
+    onSlotSelect(range);
+  };
+
+  const handleEventClick = (
+    event: MouseEvent<HTMLButtonElement>,
+    reservation: ReservationPublicResponse,
+  ): void => {
+    event.stopPropagation();
+    onEventSelect?.(reservation);
+  };
+
   return (
     <div className="week-calendar">
       <header className="week-calendar__toolbar">
@@ -237,11 +326,14 @@ export function WeekCalendar({ spaceId, currentUserName }: WeekCalendarProps) {
             </div>
 
             <div
-              className={`week-calendar__day-columns${showInitialLoad ? " week-calendar__day-columns--loading" : ""}`}
+              className={`week-calendar__day-columns${showInitialLoad ? " week-calendar__day-columns--loading" : ""}${isInteractive ? " week-calendar__day-columns--interactive" : ""}`}
             >
               {weekDays.map((day: Date, dayIndex: number) => {
                 const isToday: boolean = isSameDay(day, today);
                 const daySegments: CalendarEventSegment[] = eventSegments.filter(
+                  (segment: CalendarEventSegment) => segment.dayIndex === dayIndex,
+                );
+                const dayDraftSegments: CalendarEventSegment[] = draftSegments.filter(
                   (segment: CalendarEventSegment) => segment.dayIndex === dayIndex,
                 );
 
@@ -249,6 +341,9 @@ export function WeekCalendar({ spaceId, currentUserName }: WeekCalendarProps) {
                   <div
                     key={day.toISOString()}
                     className={`week-calendar__day-column${isToday ? " week-calendar__day-column--today" : ""}`}
+                    onClick={(event: MouseEvent<HTMLDivElement>) => {
+                      handleColumnClick(event, day);
+                    }}
                   >
                     {isToday && nowLinePercent !== null ? (
                       <div
@@ -263,19 +358,29 @@ export function WeekCalendar({ spaceId, currentUserName }: WeekCalendarProps) {
                       const ownClass: string = segment.isOwn
                         ? " week-calendar__event--own"
                         : "";
+                      const statusLabel: string = t(
+                        `reservation.status.${status}`,
+                      );
 
                       return (
-                        <div
+                        <button
                           key={segment.key}
+                          type="button"
                           className={`week-calendar__event ${statusClass}${ownClass}`}
                           style={{
                             top: `${segment.topPercent}%`,
                             height: `${segment.heightPercent}%`,
                           }}
-                          title={`${segment.reservation.user_name} · ${formatTimeRange(segment.reservation.start_at, segment.reservation.end_at, locale)}`}
+                          title={`${segment.reservation.user_name} · ${statusLabel} · ${formatTimeRange(segment.reservation.start_at, segment.reservation.end_at, locale)}`}
+                          onClick={(event: MouseEvent<HTMLButtonElement>) => {
+                            handleEventClick(event, segment.reservation);
+                          }}
                         >
                           <span className="week-calendar__event-name">
                             {segment.reservation.user_name}
+                          </span>
+                          <span className="week-calendar__event-status">
+                            {statusLabel}
                           </span>
                           <span className="week-calendar__event-time">
                             {formatTimeRange(
@@ -284,9 +389,36 @@ export function WeekCalendar({ spaceId, currentUserName }: WeekCalendarProps) {
                               locale,
                             )}
                           </span>
-                        </div>
+                        </button>
                       );
                     })}
+
+                    {dayDraftSegments.map((segment: CalendarEventSegment) => (
+                      <div
+                        key={segment.key}
+                        className="week-calendar__event week-calendar__event--draft"
+                        style={{
+                          top: `${segment.topPercent}%`,
+                          height: `${segment.heightPercent}%`,
+                        }}
+                        aria-hidden="true"
+                      >
+                        <span className="week-calendar__event-name">
+                          {segment.reservation.user_name ||
+                            t("reservation.event.draftLabel")}
+                        </span>
+                        <span className="week-calendar__event-status">
+                          {t("reservation.status.PENDING")}
+                        </span>
+                        <span className="week-calendar__event-time">
+                          {formatTimeRange(
+                            segment.reservation.start_at,
+                            segment.reservation.end_at,
+                            locale,
+                          )}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 );
               })}

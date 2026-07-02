@@ -17,6 +17,9 @@
     "comingSoon": "Coming soon."
   },
   "reservation": {
+    "booking": {
+      "title": "Book"
+    },
     "location": {
       "title": "Locations",
       "buildings": "Buildings",
@@ -43,6 +46,36 @@
       "nextWeek": "Next week",
       "errors": {
         "loadReservations": "Could not load reservations."
+      }
+    },
+    "status": {
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
+      "CANCELLED": "Cancelled"
+    },
+    "event": {
+      "newTitle": "Create",
+      "draftLabel": "New reservation",
+      "viewTitle": "Details",
+      "editTitle": "Edit",
+      "startLabel": "Start",
+      "endLabel": "End",
+      "memoLabel": "Memo",
+      "memoPlaceholder": "Add a memo",
+      "create": "Create",
+      "update": "Update",
+      "delete": "Delete",
+      "saving": "Working…",
+      "close": "Close",
+      "cancelEdit": "Cancel",
+      "loginRequired": "Sign in to make a reservation.",
+      "errors": {
+        "required": "Please enter start and end times.",
+        "invalidRange": "End time must be after start time.",
+        "conflict": "This time slot is already booked.",
+        "forbidden": "You do not have permission to change this reservation.",
+        "generic": "Could not complete the request. Please try again."
       }
     }
   },

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import { ApiError } from "@/api/client";
+import { ReservationLayout } from "@/features/reservation/ReservationLayout";
 import { useAuth } from "@/lib/auth/useAuth";
 import { paths } from "@/lib/brand";
 
@@ -76,16 +77,13 @@ export function UserLoginPage() {
 
   if (user) {
     return (
-      <section className="auth-page">
-        <header className="auth-page__header">
-          <h1 className="page-title">
+      <div className="booking-page">
+        <div className="booking-page__toolbar">
+          <p className="booking-page__welcome">
             {t("auth.login.welcome", { name: user.name })}
-          </h1>
-        </header>
-
-        <div className="auth-card auth-card--success">
+          </p>
           <button
-            className="auth-button auth-button--secondary"
+            className="booking-page__logout"
             type="button"
             onClick={logout}
           >
@@ -93,10 +91,8 @@ export function UserLoginPage() {
           </button>
         </div>
 
-        <Link className="text-link" to={paths.home}>
-          {t("common.backHome")}
-        </Link>
-      </section>
+        <ReservationLayout title={t("reservation.booking.title")} />
+      </div>
     );
   }
 

@@ -1,4 +1,4 @@
-import type { ReservationPublicResponse } from "@/api/types";
+import type { ReservationPublicResponse, ReservationStatus } from "@/api/types";
 
 export const HOURS_PER_DAY = 24;
 export const MINUTES_PER_DAY = HOURS_PER_DAY * 60;
@@ -46,6 +46,10 @@ export type CalendarEventSegment = {
   heightPercent: number;
   isOwn: boolean;
 };
+
+export function isCalendarVisibleStatus(status: ReservationStatus): boolean {
+  return status === "PENDING" || status === "APPROVED";
+}
 
 export function getWeekStart(date: Date): Date {
   const weekStart: Date = new Date(date);
@@ -174,4 +178,100 @@ export function formatTimeRange(
   });
 
   return `${formatter.format(new Date(startAt))} – ${formatter.format(new Date(endAt))}`;
+}
+
+export const SLOT_SNAP_MINUTES = 30;
+export const DEFAULT_EVENT_DURATION_MINUTES = 60;
+
+export type SlotTimeRange = {
+  startAt: Date;
+  endAt: Date;
+};
+
+export type CalendarDraftPreview = {
+  startAt: Date;
+  endAt: Date;
+  userName: string | null;
+  excludeReservation?: ReservationPublicResponse | null;
+};
+
+export function isSamePublicReservation(
+  left: ReservationPublicResponse,
+  right: ReservationPublicResponse,
+): boolean {
+  return (
+    left.start_at === right.start_at &&
+    left.end_at === right.end_at &&
+    left.user_name === right.user_name
+  );
+}
+
+export function getSlotTimeFromClick(
+  day: Date,
+  columnElement: HTMLElement,
+  clientY: number,
+): SlotTimeRange {
+  const rect: DOMRect = columnElement.getBoundingClientRect();
+  const relativeY: number = clientY - rect.top;
+  const percent: number = Math.max(0, Math.min(1, relativeY / rect.height));
+  const rawMinutes: number = percent * MINUTES_PER_DAY;
+  const snappedMinutes: number =
+    Math.floor(rawMinutes / SLOT_SNAP_MINUTES) * SLOT_SNAP_MINUTES;
+  const maxStartMinutes: number =
+    MINUTES_PER_DAY - DEFAULT_EVENT_DURATION_MINUTES;
+  const startMinutes: number = Math.min(snappedMinutes, maxStartMinutes);
+
+  const startAt: Date = new Date(day);
+  startAt.setHours(0, 0, 0, 0);
+  startAt.setMinutes(startMinutes);
+
+  const endAt: Date = new Date(startAt);
+  endAt.setMinutes(endAt.getMinutes() + DEFAULT_EVENT_DURATION_MINUTES);
+
+  return { startAt, endAt };
+}
+
+export function toDatetimeLocalValue(date: Date): string {
+  const pad = (value: number): string => String(value).padStart(2, "0");
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+export function fromDatetimeLocalValue(value: string): Date {
+  return new Date(value);
+}
+
+export function toIsoString(date: Date): string {
+  return date.toISOString();
+}
+
+export function formatEventDetailDateTime(
+  startAt: string,
+  endAt: string,
+  locale: string,
+): string {
+  const start: Date = new Date(startAt);
+  const end: Date = new Date(endAt);
+  const languageTag: string = locale === "en" ? "en-US" : "ko-KR";
+
+  const dateFormatter: Intl.DateTimeFormat = new Intl.DateTimeFormat(
+    languageTag,
+    {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    },
+  );
+  const timeFormatter: Intl.DateTimeFormat = new Intl.DateTimeFormat(
+    languageTag,
+    {
+      hour: "numeric",
+      minute: "2-digit",
+    },
+  );
+
+  const datePart: string = dateFormatter.format(start);
+  const timePart: string = `${timeFormatter.format(start)} – ${timeFormatter.format(end)}`;
+
+  return `${datePart} · ${timePart}`;
 }
