@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { EntryCard } from "@/components/EntryCard";
+import { useAuth } from "@/lib/auth/useAuth";
 import {
   APP_BRAND_TITLE_PRIMARY,
   APP_BRAND_TITLE_SECONDARY,
@@ -9,6 +10,7 @@ import {
 
 export function HomePage() {
   const { t } = useTranslation();
+  const { user, isInitializing } = useAuth();
 
   return (
     <div className="home-page">
@@ -20,23 +22,32 @@ export function HomePage() {
           </span>
         </h1>
         <p className="home-hero__subtitle">{t("app.subtitle")}</p>
+        {!isInitializing && user ? (
+          <p className="home-hero__welcome">
+            {t("home.welcome", { name: user.name })}
+          </p>
+        ) : null}
 
         <nav className="home-actions" aria-label={t("home.actionsLabel")}>
           <EntryCard
             to={paths.browse}
-            label={t("home.entry.public")}
+            label={t("home.entry.reservation")}
             variant="browse"
           />
-          <EntryCard
-            to={paths.login}
-            label={t("home.entry.user")}
-            variant="user"
-          />
-          <EntryCard
-            to={paths.admin}
-            label={t("home.entry.admin")}
-            variant="admin"
-          />
+          {!isInitializing && !user ? (
+            <EntryCard
+              to={paths.login}
+              label={t("home.entry.login")}
+              variant="user"
+            />
+          ) : null}
+          {!isInitializing && !user ? (
+            <EntryCard
+              to={paths.admin}
+              label={t("home.entry.admin")}
+              variant="admin"
+            />
+          ) : null}
         </nav>
       </section>
     </div>

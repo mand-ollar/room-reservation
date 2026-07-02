@@ -40,6 +40,13 @@
   text-wrap: balance;
 }
 
+.home-hero__welcome {
+  margin: var(--space-4) 0 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
 .home-actions {
   display: flex;
   flex-direction: column;

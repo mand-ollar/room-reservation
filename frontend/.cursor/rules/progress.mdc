@@ -24,10 +24,10 @@ alwaysApply: true
 | 테마 (light / dark / system) | 완료 | CSS variables, localStorage |
 | API client + DTO types | 완료 | `src/api/`, fetch + `/api` proxy |
 | App shell + header settings menu | 완료 | Language / Theme cascade menu. 터치 기기 인라인 서브메뉴 |
-| 홈 진입 화면 | 완료 | `HWAPYUNG ROOM RESERVATION`, 3 entry cards |
+| 홈 진입 화면 | 완료 | `HWAPYUNG ROOM RESERVATION`, 3 entry cards (예약·로그인·관리자). 로그인 시 Welcome + 로그인·관리자 버튼 숨김 |
 | 라우팅 scaffold | 완료 | `/`, `/browse`, `/login`, `/admin` |
-| 공개 예약 조회 (`/browse`) | 완료 | 장소 선택 + 주간 캘린더. 슬롯 클릭 등록·이벤트 클릭 상세, 미리보기 블록, 승인 상태 표시. PENDING/APPROVED만 표시. 헤더 월·년 표시(주 지배 월), 오늘·주 이동·날짜 점프. 모바일: dropdown + day view + 제목 표시 |
-| 사용자 로그인·예약 (`/login`) | 완료 | 로그인 후 `ReservationLayout`. Google Calendar 스타일 상세 팝업(수정·삭제 아이콘), 등록·수정 폼(메모 포함, API 전송). 예약 API create/update/cancel + `GET /reservations/me`. 로그아웃 시 다이얼로그 compact. 모바일: dropdown + day view + 제목 표시 |
+| 예약 (`/browse`) | 완료 | 조회·예약 통합. 장소 선택 + 주간 캘린더. 로그인 시 Welcome·로그아웃 툴바. 슬롯 클릭 등록·이벤트 클릭 상세, 미리보기 블록, 승인 상태 표시. PENDING/APPROVED만 표시. 헤더 월·년 표시(주 지배 월), 오늘·주 이동·날짜 점프. 모바일: dropdown + day view + 제목 표시 |
+| 사용자 로그인 (`/login`) | 완료 | 로그인 폼만. 성공·이미 로그인 시 홈으로 이동 |
 | 관리자 (`/admin`) | 미구현 | placeholder |
 
 ## Routes
@@ -35,8 +35,8 @@ alwaysApply: true
 | Path | 화면 | 상태 |
 |---|---|---|
 | `/` | Home — role entry | 완료 |
-| `/login` | User login + booking | 로그인 + 캘린더 예약(등록·상세·수정·삭제). 월·년 헤더·날짜 점프. 모바일 day view + 제목 |
-| `/browse` | Public reservation browse | 장소 선택 + 주간 캘린더. 월·년 헤더·날짜 점프. 모바일: dropdown + day view + 제목 |
+| `/login` | User login | 로그인 폼. 성공·이미 로그인 시 홈으로 |
+| `/browse` | 예약 (조회·등록) | 장소 선택 + 주간 캘린더. 로그인 시 Welcome·로그아웃. 월·년 헤더·날짜 점프. 모바일: dropdown + day view + 제목 |
 | `/admin` | Admin login + management | placeholder |
 
 ## 갱신 규칙
