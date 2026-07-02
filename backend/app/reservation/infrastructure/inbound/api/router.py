@@ -33,7 +33,6 @@ from app.reservation.domain.exceptions import (
     BuildingInUseError,
     BuildingNotFoundError,
     DuplicateBuildingNameError,
-    DuplicateSpaceNameError,
     InvalidReservationPeriodError,
     InvalidReservationTransitionError,
     ReservationAccessDeniedError,
@@ -186,8 +185,6 @@ async def create_space(
         )
     except BuildingNotFoundError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
-    except DuplicateSpaceNameError as error:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error
     return SpaceResponse.from_entity(space=space)
 
 
@@ -211,8 +208,6 @@ async def update_space(
         )
     except SpaceNotFoundError as error:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
-    except DuplicateSpaceNameError as error:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error
     return SpaceResponse.from_entity(space=space)
 
 

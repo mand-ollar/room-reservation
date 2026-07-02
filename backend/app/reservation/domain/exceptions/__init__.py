@@ -1,7 +1,6 @@
 from app.reservation.domain.exceptions.BuildingInUseError import BuildingInUseError
 from app.reservation.domain.exceptions.BuildingNotFoundError import BuildingNotFoundError
 from app.reservation.domain.exceptions.DuplicateBuildingNameError import DuplicateBuildingNameError
-from app.reservation.domain.exceptions.DuplicateSpaceNameError import DuplicateSpaceNameError
 from app.reservation.domain.exceptions.InvalidReservationPeriodError import InvalidReservationPeriodError
 from app.reservation.domain.exceptions.InvalidReservationTransitionError import InvalidReservationTransitionError
 from app.reservation.domain.exceptions.ReservationAccessDeniedError import ReservationAccessDeniedError
@@ -15,7 +14,6 @@ __all__ = [
     "BuildingInUseError",
     "BuildingNotFoundError",
     "DuplicateBuildingNameError",
-    "DuplicateSpaceNameError",
     "InvalidReservationPeriodError",
     "InvalidReservationTransitionError",
     "ReservationAccessDeniedError",

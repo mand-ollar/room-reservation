@@ -85,7 +85,7 @@ alwaysApply: true
   - 예약이 걸린 `Space` 삭제 → `SpaceInUseError`(409) + DB FK(RESTRICT) 이중 보호
 - 이름 유니크:
   - `Building`: `names->>'ko'`, `names->>'en'` 각각 전역 유니크 (expression index)
-  - `Space`: `(building_id, names->>'ko')`, `(building_id, names->>'en')` 각각 유니크
+  - `Space`: 같은 건물 내 이름 중복 허용 (`floor`로 층 구분·정렬)
 - `names` JSONB 검증 (CHECK): `ko`/`en` 키 필수, string 타입, 공백만 불가
 - 초기 데이터: 시드 없이 빈 상태로 시작, 관리자가 CRUD로 등록. 로컬 편의 시드는 `scripts/seed_buildings_spaces.py` (gitignored)
 - 목록 조회는 공개 (예약 폼에서 선택해야 하므로). API 응답에 `names` 객체 전체 포함 — 프론트가 locale에 맞게 표시.
@@ -243,7 +243,7 @@ alwaysApply: true
 | 401 | 인증 실패 (로그인 거부, 토큰 무효, USER 전용 API에 ADMIN 토큰) |
 | 403 | 권한 부족 (admin API에 USER 토큰, 타인 예약 변경·취소) |
 | 404 | building / space / reservation / user 미존재 |
-| 409 | 이름 중복, 건물·공간 삭제 불가(하위 데이터 존재), 예약 시간 충돌, 잘못된 상태 전이 |
+| 409 | 건물 이름 중복, 건물·공간 삭제 불가(하위 데이터 존재), 예약 시간 충돌, 잘못된 상태 전이 |
 
 ## 인프라 & 설정
 

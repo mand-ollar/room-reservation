@@ -102,7 +102,20 @@ docker compose logs -f api
 
 브라우저에서 홈 → 예약 조회, 로그인 후 예약 등록, `/admin` 관리자 로그인.
 
-## 7. 업데이트
+## 7. 초기 데이터 (건물·공간)
+
+DB는 빈 상태로 시작합니다. `seed_buildings_spaces.py`로 등록:
+
+```bash
+cd deploy
+API_BASE_URL=http://127.0.0.1/api \
+ADMIN_PASSWORD=<deploy/.env의_ADMIN_PASSWORD> \
+uv run --project ../backend python seed_buildings_spaces.py
+```
+
+이미 건물이 있으면 스킵됩니다. 처음부터 다시 넣으려면 `docker compose down -v` 후 `./up.sh`.
+
+## 8. 업데이트
 
 ```bash
 cd ~/room-reservation
@@ -113,7 +126,7 @@ cd deploy
 docker compose up -d --build
 ```
 
-## 8. 중지 / 데이터
+## 9. 중지 / 데이터
 
 ```bash
 cd deploy
