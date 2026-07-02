@@ -25,7 +25,7 @@ alwaysApply: true
 | App shell + header settings menu | 완료 | Language / Theme cascade menu |
 | 홈 진입 화면 | 완료 | `HWAPYUNG ROOM RESERVATION`, 3 entry cards |
 | 라우팅 scaffold | 완료 | `/`, `/browse`, `/login`, `/admin` |
-| 공개 예약 조회 (`/browse`) | 미구현 | placeholder |
+| 공개 예약 조회 (`/browse`) | 완료 | 좌우 스플릿, 장소 선택(건물→층→공간), Google Calendar 스타일 주간 예약 현황(일요일 시작·24h·내부 스크롤·본인 예약 강조·GMT 오프셋 표시) |
 | 사용자 로그인·예약 (`/login`) | 진행 중 | 로그인 UI·API 연동 완료 (`POST /auth/login`, JWT 저장·복원, 전화번호 `xxx-xxxx-xxxx` 자동 포맷). 예약 UI 미구현 |
 | 관리자 (`/admin`) | 미구현 | placeholder |
 
@@ -34,7 +34,7 @@ alwaysApply: true
 | Path | 화면 | 상태 |
 |---|---|---|
 | `/` | Home — role entry | 완료 |
-| `/browse` | Public reservation browse | placeholder |
+| `/browse` | Public reservation browse | 장소 선택 + 주간 캘린더 예약 현황 |
 | `/login` | User login + booking | 로그인 완료 (이름·전화번호, 자동 가입/로그인, 세션 유지). 예약 placeholder |
 | `/admin` | Admin login + management | placeholder |
 

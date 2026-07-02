@@ -16,6 +16,36 @@
   "placeholder": {
     "comingSoon": "Coming soon."
   },
+  "reservation": {
+    "location": {
+      "title": "Locations",
+      "buildings": "Buildings",
+      "floors": "Floors",
+      "spaces": "Spaces",
+      "floorLabel": "Floor {{floor}}",
+      "spaceCount": "{{count}} spaces",
+      "pathPlaceholder": "Choose a building to start",
+      "loading": "Loading…",
+      "emptyBuildings": "No buildings registered.",
+      "emptyFloors": "No spaces in this building.",
+      "emptySpaces": "No spaces on this floor.",
+      "errors": {
+        "loadBuildings": "Could not load buildings.",
+        "loadSpaces": "Could not load spaces."
+      }
+    },
+    "schedule": {
+      "title": "Reservations",
+      "selectSpace": "Select a space on the left.",
+      "loading": "Loading…",
+      "today": "Today",
+      "prevWeek": "Previous week",
+      "nextWeek": "Next week",
+      "errors": {
+        "loadReservations": "Could not load reservations."
+      }
+    }
+  },
   "auth": {
     "login": {
       "title": "Sign in to book",
