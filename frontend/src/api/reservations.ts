@@ -93,3 +93,29 @@ export async function cancelReservation(
     },
   );
 }
+
+export async function approveReservation(
+  accessToken: string,
+  reservationId: string,
+): Promise<ReservationResponse> {
+  return apiFetch<ReservationResponse>(
+    `/reservations/${reservationId}/approve`,
+    {
+      method: "POST",
+      accessToken,
+    },
+  );
+}
+
+export async function rejectReservation(
+  accessToken: string,
+  reservationId: string,
+): Promise<ReservationResponse> {
+  return apiFetch<ReservationResponse>(
+    `/reservations/${reservationId}/reject`,
+    {
+      method: "POST",
+      accessToken,
+    },
+  );
+}

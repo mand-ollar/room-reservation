@@ -25,8 +25,8 @@ export function PublicBrowsePage() {
             className="booking-page__logout"
             type="button"
             onClick={() => {
+              navigate(paths.home, { replace: true });
               logout();
-              navigate(paths.home);
             }}
           >
             {t("auth.login.logout")}

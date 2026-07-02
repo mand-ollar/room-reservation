@@ -10,3 +10,7 @@ export async function fetchSpaces(
 ): Promise<SpaceResponse[]> {
   return apiFetch<SpaceResponse[]>(`/spaces?building_id=${buildingId}`);
 }
+
+export async function fetchAllSpaces(): Promise<SpaceResponse[]> {
+  return apiFetch<SpaceResponse[]>("/spaces");
+}

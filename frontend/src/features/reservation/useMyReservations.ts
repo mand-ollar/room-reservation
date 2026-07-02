@@ -21,6 +21,27 @@ export function findMyReservation(
   );
 }
 
+export function getOwnRejectedPublicReservations(
+  myReservations: ReservationResponse[],
+  spaceId: string,
+  userName: string,
+): ReservationPublicResponse[] {
+  return myReservations
+    .filter(
+      (reservation: ReservationResponse) =>
+        reservation.space_id === spaceId && reservation.status === "REJECTED",
+    )
+    .map(
+      (reservation: ReservationResponse): ReservationPublicResponse => ({
+        status: "REJECTED",
+        start_at: reservation.start_at,
+        end_at: reservation.end_at,
+        user_name: userName,
+        memo: reservation.memo ?? null,
+      }),
+    );
+}
+
 type UseMyReservationsResult = {
   myReservations: ReservationResponse[];
   isLoading: boolean;

@@ -290,9 +290,9 @@ export function HeaderMenu() {
                   role="menuitem"
                   className="header-menu__action"
                   onClick={() => {
-                    logout();
                     closeMenu();
-                    navigate(paths.home);
+                    navigate(paths.home, { replace: true });
+                    logout();
                   }}
                   onPointerUp={blurIfTouchUp}
                 >
@@ -305,9 +305,9 @@ export function HeaderMenu() {
                   role="menuitem"
                   className="header-menu__action"
                   onClick={() => {
-                    logoutAdmin();
                     closeMenu();
-                    navigate(paths.home);
+                    navigate(paths.home, { replace: true });
+                    logoutAdmin();
                   }}
                   onPointerUp={blurIfTouchUp}
                 >

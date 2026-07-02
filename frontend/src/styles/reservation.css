@@ -734,10 +734,18 @@
 }
 
 .week-calendar__event--rejected {
-  background: var(--color-error-subtle);
-  border-left-color: var(--color-error);
-  color: var(--color-text-secondary);
-  opacity: 0.75;
+  background: color-mix(in srgb, var(--color-surface-muted) 72%, transparent);
+  border-left-color: var(--color-text-tertiary);
+  color: var(--color-text-tertiary);
+  opacity: 0.72;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.week-calendar__event--rejected .week-calendar__event-name,
+.week-calendar__event--rejected .week-calendar__event-time,
+.week-calendar__event--rejected .week-calendar__event-status {
+  opacity: 0.88;
 }
 
 .week-calendar__event--cancelled {
@@ -926,7 +934,7 @@
 }
 
 .event-dialog__color--rejected {
-  background: var(--color-error);
+  background: var(--color-text-tertiary);
 }
 
 .event-dialog__color--cancelled {

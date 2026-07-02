@@ -35,6 +35,7 @@ type WeekCalendarProps = {
   spaceId: string | null;
   currentUserName: string | null;
   draftPreview?: CalendarDraftPreview | null;
+  ownRejectedReservations?: ReservationPublicResponse[];
   externalReservations?: {
     reservations: ReservationPublicResponse[];
     isLoading: boolean;
@@ -65,6 +66,7 @@ export function WeekCalendar({
   spaceId,
   currentUserName,
   draftPreview,
+  ownRejectedReservations = [],
   externalReservations,
   highlightAllAsOwn = false,
   onSlotSelect,
@@ -126,7 +128,7 @@ export function WeekCalendar({
 
   const visibleReservations: ReservationPublicResponse[] = useMemo(
     () => {
-      const filtered: ReservationPublicResponse[] = reservations.filter(
+      const activeReservations: ReservationPublicResponse[] = reservations.filter(
         (reservation: ReservationPublicResponse) =>
           isCalendarVisibleStatus(reservation.status) &&
           reservationOverlapsWeek(
@@ -135,6 +137,20 @@ export function WeekCalendar({
             filterWeekStart,
           ),
       );
+
+      const rejectedReservations: ReservationPublicResponse[] =
+        ownRejectedReservations.filter((reservation: ReservationPublicResponse) =>
+          reservationOverlapsWeek(
+            reservation.start_at,
+            reservation.end_at,
+            filterWeekStart,
+          ),
+        );
+
+      const filtered: ReservationPublicResponse[] = [
+        ...activeReservations,
+        ...rejectedReservations,
+      ];
 
       if (!draftPreview?.excludeReservation) {
         return filtered;
@@ -145,7 +161,7 @@ export function WeekCalendar({
           !isSamePublicReservation(reservation, draftPreview.excludeReservation!),
       );
     },
-    [reservations, filterWeekStart, draftPreview],
+    [reservations, ownRejectedReservations, filterWeekStart, draftPreview],
   );
 
   const draftSegments: CalendarEventSegment[] = useMemo(() => {
@@ -470,9 +486,10 @@ export function WeekCalendar({
                     {daySegments.map((segment: CalendarEventSegment) => {
                       const status: ReservationStatus = segment.reservation.status;
                       const statusClass: string = statusClassName[status];
-                      const ownClass: string = segment.isOwn
-                        ? " week-calendar__event--own"
-                        : "";
+                      const ownClass: string =
+                        segment.isOwn && status !== "REJECTED"
+                          ? " week-calendar__event--own"
+                          : "";
                       const statusLabel: string = t(
                         `reservation.status.${status}`,
                       );

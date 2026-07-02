@@ -58,6 +58,39 @@
         "invalidCurrent": "The current password is incorrect.",
         "genericError": "Could not update the password. Please try again."
       }
+    },
+    "approvals": {
+      "title": "Approve reservations",
+      "description": "Review pending reservations and approve or reject them.",
+      "historyDescription": "View processed reservation requests.",
+      "tabsLabel": "Approval views",
+      "tabs": {
+        "pending": "Pending",
+        "history": "History"
+      },
+      "loading": "Loading…",
+      "empty": "No reservations are waiting for approval.",
+      "historyEmpty": "No processed reservation records yet.",
+      "approve": "Approve",
+      "reject": "Reject",
+      "working": "Working…",
+      "unknownUser": "Unknown",
+      "unknownLocation": "Unknown",
+      "columns": {
+        "applicant": "Applicant",
+        "location": "Location",
+        "schedule": "Schedule",
+        "memo": "Memo",
+        "requestedAt": "Requested",
+        "status": "Status",
+        "processedAt": "Processed",
+        "actions": "Actions"
+      },
+      "errors": {
+        "load": "Could not load pending approvals.",
+        "conflict": "This reservation was already handled or conflicts with another. The list was refreshed.",
+        "generic": "Could not complete the request. Please try again."
+      }
     }
   },
   "reservation": {

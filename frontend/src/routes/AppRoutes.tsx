@@ -1,8 +1,8 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import { AppShell } from "@/components/AppShell";
+import { AdminApprovalsPage } from "@/features/admin/AdminApprovalsPage";
 import { AdminPasswordPage } from "@/features/admin/AdminPasswordPage";
-import { AdminPlaceholderPage } from "@/features/admin/AdminPlaceholderPage";
 import { AdminReservationsPage } from "@/features/admin/AdminReservationsPage";
 import { AdminRootPage } from "@/features/admin/AdminRootPage";
 import { RequireAdmin } from "@/features/admin/RequireAdmin";
@@ -40,7 +40,7 @@ export function AppRoutes() {
             path={paths.adminApprovals}
             element={
               <RequireAdmin>
-                <AdminPlaceholderPage titleKey="admin.entry.approvals" />
+                <AdminApprovalsPage />
               </RequireAdmin>
             }
           />

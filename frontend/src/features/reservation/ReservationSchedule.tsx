@@ -11,6 +11,7 @@ import {
 import type { SlotTimeRange, CalendarDraftPreview } from "./calendarUtils";
 import {
   findMyReservation,
+  getOwnRejectedPublicReservations,
   useMyReservations,
 } from "./useMyReservations";
 import {
@@ -48,6 +49,18 @@ export function ReservationSchedule({
   } = useAdminSpaceReservations(isAdminMode ? spaceId : null);
   const [dialogState, setDialogState] = useState<EventDialogState | null>(null);
   const [draftRange, setDraftRange] = useState<SlotTimeRange | null>(null);
+
+  const ownRejectedReservations = useMemo(() => {
+    if (isAdminMode || !spaceId || !user) {
+      return [];
+    }
+
+    return getOwnRejectedPublicReservations(
+      myReservations,
+      spaceId,
+      user.name,
+    );
+  }, [isAdminMode, myReservations, spaceId, user]);
 
   const calendarDraft: CalendarDraftPreview | null = useMemo(() => {
     if (!draftRange) {
@@ -175,6 +188,7 @@ export function ReservationSchedule({
         spaceId={spaceId}
         currentUserName={currentUserName}
         draftPreview={calendarDraft}
+        ownRejectedReservations={ownRejectedReservations}
         externalReservations={externalReservations}
         highlightAllAsOwn={isAdminMode}
         onSlotSelect={
