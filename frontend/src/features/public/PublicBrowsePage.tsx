@@ -1,10 +1,13 @@
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 import { ReservationLayout } from "@/features/reservation/ReservationLayout";
 import { useAuth } from "@/lib/auth/useAuth";
+import { paths } from "@/lib/brand";
 
 export function PublicBrowsePage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
 
   const reservationLayout = (
@@ -21,7 +24,10 @@ export function PublicBrowsePage() {
           <button
             className="booking-page__logout"
             type="button"
-            onClick={logout}
+            onClick={() => {
+              logout();
+              navigate(paths.home);
+            }}
           >
             {t("auth.login.logout")}
           </button>

@@ -19,6 +19,7 @@ import { ApiError } from "@/api/client";
 import type { ReservationPublicResponse, ReservationStatus } from "@/api/types";
 import { paths } from "@/lib/brand";
 import { useAppLocale } from "@/lib/locale";
+import { getStoredAdminTokens } from "@/lib/auth/adminStorage";
 import { getStoredTokens } from "@/lib/auth/storage";
 
 import {
@@ -49,6 +50,7 @@ type EventDialogProps = {
   spaceId: string;
   state: EventDialogState | null;
   isLoggedIn: boolean;
+  isAdminMode?: boolean;
   onClose: () => void;
   onMutated: () => void;
   onDraftChange?: (draft: SlotTimeRange | null) => void;
@@ -81,6 +83,7 @@ export function EventDialog({
   spaceId,
   state,
   isLoggedIn,
+  isAdminMode = false,
   onClose,
   onMutated,
   onDraftChange,
@@ -111,14 +114,25 @@ export function EventDialog({
   const reservationMemo: string | null =
     state !== null && state.mode !== "create" ? state.memo : null;
 
-  const canMutate: boolean =
-    isLoggedIn &&
-    isOwn &&
-    reservation !== null &&
-    isEditableStatus(reservation.status) &&
-    reservationId !== null;
+  const canMutate: boolean = isAdminMode
+    ? reservation !== null &&
+      isEditableStatus(reservation.status) &&
+      reservationId !== null
+    : isLoggedIn &&
+      isOwn &&
+      reservation !== null &&
+      isEditableStatus(reservation.status) &&
+      reservationId !== null;
 
   const showForm: boolean = isCreateMode || (isEditing && canMutate);
+
+  const getAccessToken = (): string | null => {
+    if (isAdminMode) {
+      return getStoredAdminTokens()?.accessToken ?? null;
+    }
+
+    return getStoredTokens()?.accessToken ?? null;
+  };
 
   useEffect(() => {
     const dialog: HTMLDialogElement | null = dialogRef.current;
@@ -224,8 +238,8 @@ export function EventDialog({
       return;
     }
 
-    const tokens = getStoredTokens();
-    if (!tokens) {
+    const accessToken: string | null = getAccessToken();
+    if (!accessToken) {
       return;
     }
 
@@ -252,12 +266,12 @@ export function EventDialog({
     };
 
     const request = isCreateMode
-      ? createReservation(tokens.accessToken, {
+      ? createReservation(accessToken, {
           space_id: spaceId,
           ...body,
         })
       : reservationId
-        ? updateReservation(tokens.accessToken, reservationId, body)
+        ? updateReservation(accessToken, reservationId, body)
         : Promise.reject(new Error("Missing reservation id"));
 
     void request
@@ -274,15 +288,15 @@ export function EventDialog({
   };
 
   const handleDelete = (): void => {
-    const tokens = getStoredTokens();
-    if (!tokens || !reservationId || !canMutate) {
+    const accessToken: string | null = getAccessToken();
+    if (!accessToken || !reservationId || !canMutate) {
       return;
     }
 
     setErrorKey(null);
     setIsSubmitting(true);
 
-    void cancelReservation(tokens.accessToken, reservationId)
+    void cancelReservation(accessToken, reservationId)
       .then(() => {
         onMutated();
         onClose();
@@ -301,7 +315,7 @@ export function EventDialog({
 
   const formStatus: ReservationStatus = reservation?.status ?? "PENDING";
 
-  const isCompactLayout: boolean = !isLoggedIn;
+  const isCompactLayout: boolean = !isLoggedIn && !isAdminMode;
   const panelClassName: string = [
     "event-dialog__panel",
     "event-dialog__panel--detail",

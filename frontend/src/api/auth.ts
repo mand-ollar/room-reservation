@@ -6,8 +6,21 @@ export type LoginPayload = {
   phone: string;
 };
 
+export type AdminLoginPayload = {
+  password: string;
+};
+
 export async function loginUser(payload: LoginPayload): Promise<TokenResponse> {
   return apiFetch<TokenResponse>("/auth/login", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function loginAdmin(
+  payload: AdminLoginPayload,
+): Promise<TokenResponse> {
+  return apiFetch<TokenResponse>("/auth/admin/login", {
     method: "POST",
     body: JSON.stringify(payload),
   });

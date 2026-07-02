@@ -35,6 +35,12 @@ type WeekCalendarProps = {
   spaceId: string | null;
   currentUserName: string | null;
   draftPreview?: CalendarDraftPreview | null;
+  externalReservations?: {
+    reservations: ReservationPublicResponse[];
+    isLoading: boolean;
+    errorKey: "loadReservations" | null;
+  };
+  highlightAllAsOwn?: boolean;
   onSlotSelect?: (range: SlotTimeRange) => void;
   onEventSelect?: (reservation: ReservationPublicResponse) => void;
 };
@@ -59,12 +65,22 @@ export function WeekCalendar({
   spaceId,
   currentUserName,
   draftPreview,
+  externalReservations,
+  highlightAllAsOwn = false,
   onSlotSelect,
   onEventSelect,
 }: WeekCalendarProps) {
   const { t, i18n } = useTranslation();
   const locale: string = useAppLocale();
-  const { reservations, isLoading, errorKey } = useSpaceReservations(spaceId);
+  const internalReservations = useSpaceReservations(
+    externalReservations ? null : spaceId,
+  );
+  const reservations: ReservationPublicResponse[] =
+    externalReservations?.reservations ?? internalReservations.reservations;
+  const isLoading: boolean =
+    externalReservations?.isLoading ?? internalReservations.isLoading;
+  const errorKey: "loadReservations" | null =
+    externalReservations?.errorKey ?? internalReservations.errorKey;
   const scrollRef = useRef<HTMLDivElement>(null);
   const hasScrolledInitiallyRef = useRef<boolean>(false);
   const pointerStartRef = useRef<PointerPosition | null>(null);
@@ -166,7 +182,8 @@ export function WeekCalendar({
     return visibleReservations.flatMap(
       (reservation: ReservationPublicResponse, index: number) => {
         const isOwn: boolean =
-          currentUserName !== null && reservation.user_name === currentUserName;
+          highlightAllAsOwn ||
+          (currentUserName !== null && reservation.user_name === currentUserName);
 
         return getEventSegmentsForWeek(
           reservation,
@@ -176,7 +193,7 @@ export function WeekCalendar({
         );
       },
     );
-  }, [visibleReservations, displayDays, currentUserName]);
+  }, [visibleReservations, displayDays, currentUserName, highlightAllAsOwn]);
 
   const todayIndex: number = useMemo(
     () => displayDays.findIndex((day: Date) => isSameDay(day, today)),

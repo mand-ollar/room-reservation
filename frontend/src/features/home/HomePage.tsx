@@ -1,6 +1,8 @@
 import { useTranslation } from "react-i18next";
 
+import { AdminHomePage } from "@/features/admin/AdminHomePage";
 import { EntryCard } from "@/components/EntryCard";
+import { useAdminAuth } from "@/lib/auth/useAdminAuth";
 import { useAuth } from "@/lib/auth/useAuth";
 import {
   APP_BRAND_TITLE_PRIMARY,
@@ -11,6 +13,11 @@ import {
 export function HomePage() {
   const { t } = useTranslation();
   const { user, isInitializing } = useAuth();
+  const { isAdmin, isInitializing: isAdminInitializing } = useAdminAuth();
+
+  if (!isAdminInitializing && isAdmin) {
+    return <AdminHomePage />;
+  }
 
   return (
     <div className="home-page">

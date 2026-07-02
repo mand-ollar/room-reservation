@@ -8,6 +8,9 @@ export const paths = {
   browse: "/browse",
   login: "/login",
   admin: "/admin",
+  adminReservations: "/admin/reservations",
+  adminPassword: "/admin/password",
+  adminApprovals: "/admin/approvals",
 } as const;
 
 export type AppPath = (typeof paths)[keyof typeof paths];

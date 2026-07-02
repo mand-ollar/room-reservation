@@ -23,21 +23,28 @@ alwaysApply: true
 | i18n (ko / en) | 완료 | `react-i18next` |
 | 테마 (light / dark / system) | 완료 | CSS variables, localStorage |
 | API client + DTO types | 완료 | `src/api/`, fetch + `/api` proxy |
-| App shell + header settings menu | 완료 | Language / Theme cascade menu. 로그인 시 헤더 ⋮에 로그아웃(구분선, 전 페이지). 로그아웃 hover 시 열린 서브메뉴 닫힘. 터치 기기 인라인 서브메뉴 |
-| 홈 진입 화면 | 완료 | `HWAPYUNG ROOM RESERVATION`, 3 entry cards (예약·로그인·관리자). 로그인 시 Welcome + 로그인·관리자 버튼 숨김 |
-| 라우팅 scaffold | 완료 | `/`, `/browse`, `/login`, `/admin` |
+| App shell + header settings menu | 완료 | Language / Theme cascade menu. 사용자·관리자 로그아웃(구분선, 전 페이지). 로그아웃 시 홈으로 이동. 관리자 로그인 시 헤더 빨간 **관리자** 배지 |
+| 홈 진입 화면 | 완료 | 일반: 예약·로그인·관리자 카드. 관리자 로그인 시 홈에 관리자 메뉴만 표시 |
+| 라우팅 scaffold | 완료 | `/`, `/browse`, `/login`, `/admin`, `/admin/*` |
 | 예약 (`/browse`) | 완료 | 조회·예약 통합. 장소 선택 + 주간 캘린더. 로그인 시 Welcome·로그아웃 툴바. 슬롯 클릭 등록·이벤트 클릭 상세, 미리보기 블록, 승인 상태 표시. PENDING/APPROVED만 표시. 헤더 월·년 표시(주 지배 월), 오늘·주 이동·날짜 점프. 모바일: dropdown + day view + 제목 표시 |
 | 사용자 로그인 (`/login`) | 완료 | 로그인 폼만. 성공·이미 로그인 시 홈으로 이동 |
-| 관리자 (`/admin`) | 미구현 | placeholder |
+| 관리자 인증 | 완료 | `/admin` 비밀번호 로그인·별도 토큰 저장·refresh 세션 복원. 로그인 후 `/`로 이동 |
+| 관리자 메뉴 | 완료 | 홈 스타일 3 entry cards (예약 관리·비밀번호 설정·예약 승인) |
+| 관리자 예약 관리 | 완료 | `/admin/reservations`. 사용자 예약 UI 재사용. 전체 하이라이트·수정·삭제 |
+| 관리자 비밀번호 설정 | 미구현 | placeholder |
+| 관리자 예약 승인 | 미구현 | placeholder |
 
 ## Routes
 
 | Path | 화면 | 상태 |
 |---|---|---|
-| `/` | Home — role entry | 완료 |
+| `/` | Home | 일반 진입 카드. 관리자 로그인 시 관리자 메뉴 |
 | `/login` | User login | 로그인 폼. 성공·이미 로그인 시 홈으로 |
-| `/browse` | 예약 (조회·등록) | 장소 선택 + 주간 캘린더. 로그인 시 Welcome·로그아웃. 월·년 헤더·날짜 점프. 모바일: dropdown + day view + 제목 |
-| `/admin` | Admin login + management | placeholder |
+| `/browse` | 예약 (조회·등록) | 장소 선택 + 주간 캘린더. 로그인 시 Welcome·로그아웃→홈 |
+| `/admin` | Admin login | 비밀번호 로그인. 성공 시 `/`로 이동 |
+| `/admin/reservations` | 예약 관리 | 캘린더 조회·전체 수정·삭제 |
+| `/admin/password` | 비밀번호 설정 | placeholder |
+| `/admin/approvals` | 예약 승인 | placeholder |
 
 ## 갱신 규칙
 

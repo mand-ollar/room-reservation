@@ -1,8 +1,11 @@
 import { useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 
 import { useAppLanguage } from "@/lib/locale";
+import { useAdminAuth } from "@/lib/auth/useAdminAuth";
 import { useAuth } from "@/lib/auth/useAuth";
+import { paths } from "@/lib/brand";
 import type { AppLanguage } from "@/lib/i18n/config";
 import type { ThemePreference } from "@/lib/theme/storage";
 import { useTheme } from "@/lib/theme/useTheme";
@@ -54,6 +57,7 @@ const blurIfTouchUp = (event: ReactPointerEvent<HTMLElement>): void => {
 
 export function HeaderMenu() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const menuId: string = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState<boolean>(false);
@@ -62,6 +66,12 @@ export function HeaderMenu() {
   const { language, setLanguage } = useAppLanguage();
   const { themePreference, setThemePreference } = useTheme();
   const { user, isInitializing, logout } = useAuth();
+  const {
+    isAdmin,
+    isInitializing: isAdminInitializing,
+    logout: logoutAdmin,
+  } = useAdminAuth();
+  const showAdminLogout: boolean = !isAdminInitializing && isAdmin;
 
   const languageOptions: readonly MenuOption<AppLanguage>[] = [
     { value: "ko", label: t("settings.korean") },
@@ -264,7 +274,7 @@ export function HeaderMenu() {
             themePreference,
             setThemePreference,
           )}
-          {!isInitializing && user ? (
+          {(!isInitializing && user) || showAdminLogout ? (
             <div
               className="header-menu__footer"
               onPointerEnter={handleNonSubmenuPointerEnter}
@@ -274,18 +284,36 @@ export function HeaderMenu() {
                 role="separator"
                 aria-hidden="true"
               />
-              <button
-                type="button"
-                role="menuitem"
-                className="header-menu__action"
-                onClick={() => {
-                  logout();
-                  closeMenu();
-                }}
-                onPointerUp={blurIfTouchUp}
-              >
-                {t("auth.login.logout")}
-              </button>
+              {!isInitializing && user ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="header-menu__action"
+                  onClick={() => {
+                    logout();
+                    closeMenu();
+                    navigate(paths.home);
+                  }}
+                  onPointerUp={blurIfTouchUp}
+                >
+                  {t("auth.login.logout")}
+                </button>
+              ) : null}
+              {showAdminLogout ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="header-menu__action"
+                  onClick={() => {
+                    logoutAdmin();
+                    closeMenu();
+                    navigate(paths.home);
+                  }}
+                  onPointerUp={blurIfTouchUp}
+                >
+                  {t("admin.logout")}
+                </button>
+              ) : null}
             </div>
           ) : null}
         </div>

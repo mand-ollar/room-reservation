@@ -13,23 +13,39 @@ import {
   findMyReservation,
   useMyReservations,
 } from "./useMyReservations";
+import {
+  findAdminSpaceReservation,
+  invalidateAdminSpaceReservations,
+  useAdminSpaceReservations,
+} from "./useAdminSpaceReservations";
 import { invalidateSpaceReservations } from "./useSpaceReservations";
 import { WeekCalendar } from "./WeekCalendar";
+
+type ReservationScheduleMode = "public" | "admin";
 
 type ReservationScheduleProps = {
   spaceId: string | null;
   currentUserName: string | null;
+  mode?: ReservationScheduleMode;
 };
 
 export function ReservationSchedule({
   spaceId,
   currentUserName,
+  mode = "public",
 }: ReservationScheduleProps) {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const isAdminMode: boolean = mode === "admin";
   const { myReservations, refetch: refetchMyReservations } = useMyReservations(
-    user !== null,
+    !isAdminMode && user !== null,
   );
+  const {
+    reservations: adminReservations,
+    isLoading: isAdminReservationsLoading,
+    errorKey: adminReservationsErrorKey,
+    refetch: refetchAdminReservations,
+  } = useAdminSpaceReservations(isAdminMode ? spaceId : null);
   const [dialogState, setDialogState] = useState<EventDialogState | null>(null);
   const [draftRange, setDraftRange] = useState<SlotTimeRange | null>(null);
 
@@ -52,7 +68,7 @@ export function ReservationSchedule({
   }, [draftRange, dialogState, currentUserName]);
 
   useEffect(() => {
-    if (!dialogState || dialogState.mode === "create" || !spaceId) {
+    if (isAdminMode || !dialogState || dialogState.mode === "create" || !spaceId) {
       return;
     }
 
@@ -75,7 +91,7 @@ export function ReservationSchedule({
         memo: myReservation.memo ?? null,
       });
     }
-  }, [dialogState, myReservations, spaceId]);
+  }, [dialogState, isAdminMode, myReservations, spaceId]);
 
   const handleSlotSelect = (range: SlotTimeRange): void => {
     setDialogState({
@@ -87,6 +103,22 @@ export function ReservationSchedule({
 
   const handleEventSelect = (reservation: ReservationPublicResponse): void => {
     if (!spaceId) {
+      return;
+    }
+
+    if (isAdminMode) {
+      const adminReservation = findAdminSpaceReservation(
+        adminReservations,
+        reservation,
+      );
+
+      setDialogState({
+        mode: "view",
+        reservation,
+        reservationId: adminReservation?.reservationId ?? null,
+        isOwn: true,
+        memo: adminReservation?.memo ?? reservation.memo ?? null,
+      });
       return;
     }
 
@@ -108,9 +140,26 @@ export function ReservationSchedule({
   const handleMutated = (): void => {
     if (spaceId) {
       invalidateSpaceReservations(spaceId);
+      if (isAdminMode) {
+        invalidateAdminSpaceReservations(spaceId);
+      }
     }
+
+    if (isAdminMode) {
+      refetchAdminReservations();
+      return;
+    }
+
     refetchMyReservations();
   };
+
+  const externalReservations = isAdminMode
+    ? {
+        reservations: adminReservations,
+        isLoading: isAdminReservationsLoading,
+        errorKey: adminReservationsErrorKey,
+      }
+    : undefined;
 
   return (
     <div className="reservation-schedule">
@@ -126,7 +175,11 @@ export function ReservationSchedule({
         spaceId={spaceId}
         currentUserName={currentUserName}
         draftPreview={calendarDraft}
-        onSlotSelect={spaceId ? handleSlotSelect : undefined}
+        externalReservations={externalReservations}
+        highlightAllAsOwn={isAdminMode}
+        onSlotSelect={
+          spaceId && !isAdminMode ? handleSlotSelect : undefined
+        }
         onEventSelect={spaceId ? handleEventSelect : undefined}
       />
 
@@ -134,7 +187,8 @@ export function ReservationSchedule({
         <EventDialog
           spaceId={spaceId}
           state={dialogState}
-          isLoggedIn={user !== null}
+          isLoggedIn={isAdminMode || user !== null}
+          isAdminMode={isAdminMode}
           onClose={() => {
             setDialogState(null);
             setDraftRange(null);

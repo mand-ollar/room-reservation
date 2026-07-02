@@ -28,6 +28,30 @@ export async function fetchReservationsBySpace(
   );
 }
 
+export async function fetchAdminReservations(
+  accessToken: string,
+  filters?: {
+    spaceId?: string;
+    status?: ReservationStatus;
+  },
+): Promise<ReservationResponse[]> {
+  const params: URLSearchParams = new URLSearchParams();
+
+  if (filters?.spaceId) {
+    params.set("space_id", filters.spaceId);
+  }
+
+  if (filters?.status) {
+    params.set("status", filters.status);
+  }
+
+  const query: string = params.size > 0 ? `?${params.toString()}` : "";
+
+  return apiFetch<ReservationResponse[]>(`/admin/reservations${query}`, {
+    accessToken,
+  });
+}
+
 export async function fetchMyReservations(
   accessToken: string,
 ): Promise<ReservationResponse[]> {

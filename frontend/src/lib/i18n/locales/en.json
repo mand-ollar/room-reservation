@@ -17,6 +17,30 @@
   "placeholder": {
     "comingSoon": "Coming soon."
   },
+  "admin": {
+    "badge": "ADMIN",
+    "actionsLabel": "Admin menu",
+    "backToMenu": "Back to admin menu",
+    "logout": "Admin sign out",
+    "login": {
+      "title": "Admin sign in",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter password",
+      "submit": "Sign in",
+      "submitting": "Working…",
+      "loading": "Checking session…",
+      "errors": {
+        "required": "Please enter the password.",
+        "invalid": "Incorrect password.",
+        "genericError": "Sign-in failed. Please try again."
+      }
+    },
+    "entry": {
+      "reservations": "Manage reservations",
+      "password": "Admin password",
+      "approvals": "Approve reservations"
+    }
+  },
   "reservation": {
     "booking": {
       "title": "Book"

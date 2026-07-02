@@ -7,9 +7,13 @@ import { ReservationSchedule } from "./ReservationSchedule";
 
 type ReservationLayoutProps = {
   title: string;
+  mode?: "public" | "admin";
 };
 
-export function ReservationLayout({ title }: ReservationLayoutProps) {
+export function ReservationLayout({
+  title,
+  mode = "public",
+}: ReservationLayoutProps) {
   const { user } = useAuth();
   const [selectedSpaceId, setSelectedSpaceId] = useState<string | null>(null);
 
@@ -31,6 +35,7 @@ export function ReservationLayout({ title }: ReservationLayoutProps) {
           <ReservationSchedule
             spaceId={selectedSpaceId}
             currentUserName={user?.name ?? null}
+            mode={mode}
           />
         </main>
       </div>
