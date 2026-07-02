@@ -46,20 +46,33 @@ textarea {
 
 button {
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 a {
   color: var(--color-accent);
   text-decoration: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
-a:hover {
-  text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+  a:hover {
+    text-decoration: underline;
+  }
 }
 
 :focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;
+}
+
+@media (pointer: coarse) {
+  button:focus:not(:focus-visible),
+  a:focus:not(:focus-visible) {
+    outline: none;
+  }
 }
 
 .app-shell {
@@ -91,9 +104,11 @@ a:hover {
   text-decoration: none;
 }
 
-.app-header__brand:hover {
-  color: var(--color-primary);
-  text-decoration: none;
+@media (hover: hover) and (pointer: fine) {
+  .app-header__brand:hover {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
 }
 
 .header-menu {
@@ -116,9 +131,11 @@ a:hover {
     color var(--transition-fast);
 }
 
-.header-menu__trigger:hover {
-  background: var(--color-control-bg);
-  color: var(--color-text-primary);
+@media (hover: hover) and (pointer: fine) {
+  .header-menu__trigger:hover {
+    background: var(--color-control-bg);
+    color: var(--color-text-primary);
+  }
 }
 
 .header-menu__trigger[aria-expanded="true"] {
@@ -165,9 +182,14 @@ a:hover {
   transition: background-color var(--transition-fast);
 }
 
-.header-menu__row:hover,
 .header-menu__row--open {
   background: var(--color-surface-muted);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .header-menu__row:hover {
+    background: var(--color-surface-muted);
+  }
 }
 
 .header-menu__chevron {
@@ -206,8 +228,27 @@ a:hover {
   transition: background-color var(--transition-fast);
 }
 
-.header-menu__suboption:hover {
-  background: var(--color-surface-muted);
+@media (hover: hover) and (pointer: fine) {
+  .header-menu__suboption:hover {
+    background: var(--color-surface-muted);
+  }
+}
+
+@media (pointer: coarse) {
+  .header-menu__subpanel {
+    position: static;
+    min-width: 0;
+    margin-top: var(--space-1);
+    padding: 0 0 0 var(--space-2);
+    border: none;
+    border-left: 2px solid var(--color-border-subtle);
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .header-menu__suboption:active {
+    background: var(--color-surface-muted);
+  }
 }
 
 .header-menu__check {
@@ -223,6 +264,25 @@ a:hover {
   max-width: var(--content-max-width);
   margin: 0 auto;
   padding: var(--space-12) var(--space-6);
+}
+
+@media (max-width: 640px) {
+  .app-header {
+    padding: 0 var(--space-4);
+  }
+
+  .app-header__brand {
+    font-size: var(--font-size-md);
+  }
+
+  .app-main {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .header-menu__panel {
+    right: calc(-1 * var(--space-2));
+    min-width: 11rem;
+  }
 }
 
 .placeholder-page {

@@ -166,6 +166,17 @@ export function formatWeekRange(weekStart: Date, locale: string): string {
   return `${startLabel} – ${endLabel}, ${yearLabel}`;
 }
 
+export function formatDayLabel(day: Date, locale: string): string {
+  const languageTag: string = locale === "en" ? "en-US" : "ko-KR";
+
+  return new Intl.DateTimeFormat(languageTag, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(day);
+}
+
 export function formatTimeRange(
   startAt: string,
   endAt: string,

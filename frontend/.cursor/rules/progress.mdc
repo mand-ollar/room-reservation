@@ -13,6 +13,7 @@ alwaysApply: true
 - `pnpm dev` — port `5173`, `--host` (LAN 접속)
 - `VITE_API_URL=/api` — dev server가 `/api` → backend `:8000` 프록시
 - 모바일: 맥과 **같은 Wi‑Fi/핫스팟** 필요. 공공 Wi‑Fi(client isolation)에서는 LAN 접속 불가.
+- 모바일 UI (`≤768px`): 예약 화면 건물/층/공간 dropdown, 캘린더 오늘 day view, 터치 최적화(hover guard·tap blur)
 
 ## 구현 상태
 
@@ -22,11 +23,11 @@ alwaysApply: true
 | i18n (ko / en) | 완료 | `react-i18next` |
 | 테마 (light / dark / system) | 완료 | CSS variables, localStorage |
 | API client + DTO types | 완료 | `src/api/`, fetch + `/api` proxy |
-| App shell + header settings menu | 완료 | Language / Theme cascade menu |
+| App shell + header settings menu | 완료 | Language / Theme cascade menu. 터치 기기 인라인 서브메뉴 |
 | 홈 진입 화면 | 완료 | `HWAPYUNG ROOM RESERVATION`, 3 entry cards |
 | 라우팅 scaffold | 완료 | `/`, `/browse`, `/login`, `/admin` |
-| 공개 예약 조회 (`/browse`) | 완료 | 장소 선택 + 주간 캘린더. 슬롯 클릭 등록·이벤트 클릭 상세, 미리보기 블록, 승인 상태 표시. PENDING/APPROVED만 표시(CANCELLED/REJECTED 숨김). 로그인 시 예약 가능 |
-| 사용자 로그인·예약 (`/login`) | 완료 | 로그인 후 `ReservationLayout`. Google Calendar 스타일 상세 팝업(수정·삭제 아이콘), 등록·수정 폼(메모 포함, API 전송 준비). 예약 API create/update/cancel + `GET /reservations/me` |
+| 공개 예약 조회 (`/browse`) | 완료 | 장소 선택 + 주간 캘린더. 슬롯 클릭 등록·이벤트 클릭 상세, 미리보기 블록, 승인 상태 표시. PENDING/APPROVED만 표시. 모바일: dropdown 장소 선택 + 오늘 day view |
+| 사용자 로그인·예약 (`/login`) | 완료 | 로그인 후 `ReservationLayout`. Google Calendar 스타일 상세 팝업(수정·삭제 아이콘), 등록·수정 폼(메모 포함, API 전송). 예약 API create/update/cancel + `GET /reservations/me`. 모바일: dropdown 장소 선택 |
 | 관리자 (`/admin`) | 미구현 | placeholder |
 
 ## Routes
@@ -34,8 +35,8 @@ alwaysApply: true
 | Path | 화면 | 상태 |
 |---|---|---|
 | `/` | Home — role entry | 완료 |
-| `/login` | User login + booking | 로그인 + 캘린더 예약(등록·상세·수정·삭제) |
-| `/browse` | Public reservation browse | 장소 선택 + 인터랙티브 주간 캘린더 |
+| `/login` | User login + booking | 로그인 + 캘린더 예약(등록·상세·수정·삭제). 모바일 day view |
+| `/browse` | Public reservation browse | 장소 선택 + 주간 캘린더. 모바일: dropdown + day view |
 | `/admin` | Admin login + management | placeholder |
 
 ## 갱신 규칙

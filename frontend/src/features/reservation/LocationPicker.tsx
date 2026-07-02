@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import type { ChangeEvent, PointerEvent } from "react";
 
 import type { BuildingResponse, SpaceResponse } from "@/api/types";
 import { getLocalizedName, useAppLocale } from "@/lib/locale";
@@ -18,6 +19,12 @@ type PickerListItemProps = {
   onClick: () => void;
 };
 
+const blurIfTouch = (event: PointerEvent<HTMLButtonElement>): void => {
+  if (event.pointerType === "touch" || event.pointerType === "pen") {
+    event.currentTarget.blur();
+  }
+};
+
 const PickerListItem = ({
   label,
   sublabel,
@@ -29,6 +36,7 @@ const PickerListItem = ({
       type="button"
       className={`location-picker__item${isSelected ? " location-picker__item--selected" : ""}`}
       onClick={onClick}
+      onPointerUp={blurIfTouch}
       aria-current={isSelected ? "true" : undefined}
     >
       <span className="location-picker__item-content">
@@ -75,6 +83,8 @@ export function LocationPicker({
     selectSpace,
     goToBuildings,
     goToFloors,
+    resetLocation,
+    clearSpace,
   } = useLocationPicker(onSpaceSelect);
 
   const activeSpaceId: string | null =
@@ -218,8 +228,123 @@ export function LocationPicker({
     ? getLocalizedName(selectedBuilding.names, locale)
     : null;
 
+  const handleBuildingChange = (event: ChangeEvent<HTMLSelectElement>): void => {
+    const value: string = event.target.value;
+    if (!value) {
+      resetLocation();
+      return;
+    }
+    selectBuilding(value);
+  };
+
+  const handleFloorChange = (event: ChangeEvent<HTMLSelectElement>): void => {
+    const value: string = event.target.value;
+    if (!value) {
+      goToFloors();
+      return;
+    }
+    selectFloor(Number(value));
+  };
+
+  const handleSpaceChange = (event: ChangeEvent<HTMLSelectElement>): void => {
+    const value: string = event.target.value;
+    if (!value) {
+      clearSpace();
+      return;
+    }
+    selectSpace(value);
+  };
+
+  const dropdownErrorMessage: string | null =
+    errorKey === "loadBuildings"
+      ? t("reservation.location.errors.loadBuildings")
+      : errorKey === "loadSpaces"
+        ? t("reservation.location.errors.loadSpaces")
+        : null;
+
   return (
     <div className="location-picker">
+      <div className="location-picker__dropdowns" aria-label={t("reservation.location.title")}>
+        <div className="location-picker__dropdown-field">
+          <label className="location-picker__dropdown-label" htmlFor="location-building">
+            {t("reservation.location.buildings")}
+          </label>
+          <select
+            id="location-building"
+            className="location-picker__dropdown-select"
+            value={selectedBuildingId ?? ""}
+            disabled={isLoadingBuildings}
+            onChange={handleBuildingChange}
+          >
+            <option value="">
+              {isLoadingBuildings
+                ? t("reservation.location.loading")
+                : t("reservation.location.selectBuilding")}
+            </option>
+            {buildings.map((building) => (
+              <option key={building.id} value={building.id}>
+                {getLocalizedName(building.names, locale)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="location-picker__dropdown-field">
+          <label className="location-picker__dropdown-label" htmlFor="location-floor">
+            {t("reservation.location.floors")}
+          </label>
+          <select
+            id="location-floor"
+            className="location-picker__dropdown-select"
+            value={selectedFloor !== null ? String(selectedFloor) : ""}
+            disabled={!selectedBuildingId || isLoadingSpaces}
+            onChange={handleFloorChange}
+          >
+            <option value="">
+              {isLoadingSpaces && selectedBuildingId
+                ? t("reservation.location.loading")
+                : t("reservation.location.selectFloor")}
+            </option>
+            {floors.map((floor) => (
+              <option key={floor} value={String(floor)}>
+                {formatFloor(floor)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="location-picker__dropdown-field">
+          <label className="location-picker__dropdown-label" htmlFor="location-space">
+            {t("reservation.location.spaces")}
+          </label>
+          <select
+            id="location-space"
+            className="location-picker__dropdown-select"
+            value={activeSpaceId ?? ""}
+            disabled={selectedFloor === null || isLoadingSpaces}
+            onChange={handleSpaceChange}
+          >
+            <option value="">
+              {isLoadingSpaces && selectedFloor !== null
+                ? t("reservation.location.loading")
+                : t("reservation.location.selectSpace")}
+            </option>
+            {spacesOnFloor.map((space) => (
+              <option key={space.id} value={space.id}>
+                {getLocalizedName(space.names, locale)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {dropdownErrorMessage ? (
+        <p className="location-picker__dropdown-error" role="alert">
+          {dropdownErrorMessage}
+        </p>
+      ) : null}
+
+      <div className="location-picker__drilldown">
       <header className="location-picker__header">
         <nav
           className="location-picker__path"
@@ -231,6 +356,7 @@ export function LocationPicker({
                 type="button"
                 className="location-picker__path-item"
                 onClick={goToBuildings}
+                onPointerUp={blurIfTouch}
               >
                 {buildingName}
               </button>
@@ -244,6 +370,7 @@ export function LocationPicker({
                     type="button"
                     className="location-picker__path-item"
                     onClick={goToFloors}
+                    onPointerUp={blurIfTouch}
                   >
                     {formatFloor(selectedFloor)}
                   </button>
@@ -264,6 +391,7 @@ export function LocationPicker({
         {view === "buildings" ? renderBuildingList() : null}
         {view === "floors" ? renderFloorList() : null}
         {view === "spaces" ? renderSpaceList() : null}
+      </div>
       </div>
     </div>
   );

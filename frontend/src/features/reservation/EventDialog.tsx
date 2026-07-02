@@ -4,6 +4,7 @@ import {
   useState,
   type FormEventHandler,
   type MouseEvent,
+  type PointerEvent,
   type SyntheticEvent,
 } from "react";
 import { useTranslation } from "react-i18next";
@@ -62,6 +63,12 @@ type EventErrorKey =
 
 const isEditableStatus = (status: ReservationStatus): boolean =>
   status === "PENDING" || status === "APPROVED";
+
+const blurIfTouch = (event: PointerEvent<HTMLButtonElement>): void => {
+  if (event.pointerType === "touch" || event.pointerType === "pen") {
+    event.currentTarget.blur();
+  }
+};
 
 const statusColorClass: Record<ReservationStatus, string> = {
   PENDING: "event-dialog__color--pending",
@@ -326,6 +333,7 @@ export function EventDialog({
               type="button"
               className="event-dialog__icon-button"
               onClick={handleClose}
+              onPointerUp={blurIfTouch}
               disabled={isSubmitting}
               aria-label={t("reservation.event.close")}
             >
@@ -420,6 +428,7 @@ export function EventDialog({
                     onClick={() => {
                       setIsEditing(true);
                     }}
+                    onPointerUp={blurIfTouch}
                     disabled={isSubmitting}
                     aria-label={t("reservation.event.editTitle")}
                   >
@@ -429,6 +438,7 @@ export function EventDialog({
                     type="button"
                     className="event-dialog__icon-button event-dialog__icon-button--danger"
                     onClick={handleDelete}
+                    onPointerUp={blurIfTouch}
                     disabled={isSubmitting}
                     aria-label={t("reservation.event.delete")}
                   >
@@ -441,6 +451,7 @@ export function EventDialog({
               type="button"
               className="event-dialog__icon-button"
               onClick={handleClose}
+              onPointerUp={blurIfTouch}
               disabled={isSubmitting}
               aria-label={t("reservation.event.close")}
             >

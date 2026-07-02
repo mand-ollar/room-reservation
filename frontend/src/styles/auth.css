@@ -73,8 +73,18 @@
   color: var(--color-text-tertiary);
 }
 
-.auth-field__input:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
+@media (hover: hover) and (pointer: fine) {
+  .auth-field__input:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
+  }
+
+  .auth-button--primary:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+  }
+
+  .auth-button--secondary:hover:not(:disabled) {
+    background: var(--color-surface-muted);
+  }
 }
 
 .auth-field__input:focus-visible {
@@ -127,10 +137,6 @@
   color: var(--color-text-inverse);
 }
 
-.auth-button--primary:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-}
-
 .auth-button--primary:active:not(:disabled) {
   background: var(--color-primary-pressed);
 }
@@ -138,8 +144,4 @@
 .auth-button--secondary {
   background: var(--color-control-bg);
   color: var(--color-text-primary);
-}
-
-.auth-button--secondary:hover:not(:disabled) {
-  background: var(--color-surface-muted);
 }

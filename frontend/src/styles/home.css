@@ -63,9 +63,15 @@
   transition: background-color var(--transition-fast);
 }
 
-.entry-card:hover {
+@media (hover: hover) and (pointer: fine) {
+  .entry-card:hover {
+    background: var(--color-surface-muted);
+    text-decoration: none;
+  }
+}
+
+.entry-card:active {
   background: var(--color-surface-muted);
-  text-decoration: none;
 }
 
 .entry-card__icon {

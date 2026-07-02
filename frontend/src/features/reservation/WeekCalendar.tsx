@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { ReservationPublicResponse, ReservationStatus } from "@/api/types";
@@ -6,6 +6,7 @@ import { useAppLocale } from "@/lib/locale";
 
 import {
   addWeeks,
+  formatDayLabel,
   formatHourLabel,
   formatTimezoneOffset,
   formatTimeRange,
@@ -36,6 +37,13 @@ type WeekCalendarProps = {
 };
 
 const DEFAULT_SCROLL_HOUR = 8;
+const TAP_MOVE_THRESHOLD_PX = 10;
+const MOBILE_DAY_VIEW_QUERY = "(max-width: 768px)";
+
+type PointerPosition = {
+  x: number;
+  y: number;
+};
 
 const statusClassName: Record<ReservationStatus, string> = {
   PENDING: "week-calendar__event--pending",
@@ -56,9 +64,15 @@ export function WeekCalendar({
   const { reservations, isLoading, errorKey } = useSpaceReservations(spaceId);
   const scrollRef = useRef<HTMLDivElement>(null);
   const hasScrolledInitiallyRef = useRef<boolean>(false);
+  const pointerStartRef = useRef<PointerPosition | null>(null);
 
   const [weekStart, setWeekStart] = useState<Date>(() => getWeekStart(new Date()));
   const [now, setNow] = useState<Date>(() => new Date());
+  const [isDayView, setIsDayView] = useState<boolean>(() =>
+    typeof window !== "undefined"
+      ? window.matchMedia(MOBILE_DAY_VIEW_QUERY).matches
+      : false,
+  );
 
   const weekDays: Date[] = useMemo(() => getWeekDays(weekStart), [weekStart]);
   const today: Date = useMemo(() => {
@@ -67,9 +81,22 @@ export function WeekCalendar({
     return current;
   }, []);
 
-  const weekLabel: string = useMemo(
-    () => formatWeekRange(weekStart, i18n.language),
-    [weekStart, i18n.language],
+  const displayDays: Date[] = useMemo(
+    () => (isDayView ? [today] : weekDays),
+    [isDayView, today, weekDays],
+  );
+
+  const filterWeekStart: Date = useMemo(
+    () => (isDayView ? getWeekStart(today) : weekStart),
+    [isDayView, today, weekStart],
+  );
+
+  const headerLabel: string = useMemo(
+    () =>
+      isDayView
+        ? formatDayLabel(today, i18n.language)
+        : formatWeekRange(weekStart, i18n.language),
+    [isDayView, today, weekStart, i18n.language],
   );
 
   const timezoneLabel: string = useMemo(() => formatTimezoneOffset(), []);
@@ -90,7 +117,7 @@ export function WeekCalendar({
           reservationOverlapsWeek(
             reservation.start_at,
             reservation.end_at,
-            weekStart,
+            filterWeekStart,
           ),
       );
 
@@ -103,7 +130,7 @@ export function WeekCalendar({
           !isSamePublicReservation(reservation, draftPreview.excludeReservation!),
       );
     },
-    [reservations, weekStart, draftPreview],
+    [reservations, filterWeekStart, draftPreview],
   );
 
   const draftSegments: CalendarEventSegment[] = useMemo(() => {
@@ -114,7 +141,7 @@ export function WeekCalendar({
     const overlapsWeek: boolean = reservationOverlapsWeek(
       toIsoString(draftPreview.startAt),
       toIsoString(draftPreview.endAt),
-      weekStart,
+      filterWeekStart,
     );
 
     if (!overlapsWeek) {
@@ -130,11 +157,11 @@ export function WeekCalendar({
 
     return getEventSegmentsForWeek(
       draftReservation,
-      weekDays,
+      displayDays,
       true,
       "draft",
     );
-  }, [draftPreview, weekDays, weekStart]);
+  }, [draftPreview, displayDays, filterWeekStart]);
 
   const eventSegments: CalendarEventSegment[] = useMemo(() => {
     return visibleReservations.flatMap(
@@ -144,17 +171,17 @@ export function WeekCalendar({
 
         return getEventSegmentsForWeek(
           reservation,
-          weekDays,
+          displayDays,
           isOwn,
           String(index),
         );
       },
     );
-  }, [visibleReservations, weekDays, currentUserName]);
+  }, [visibleReservations, displayDays, currentUserName]);
 
   const todayIndex: number = useMemo(
-    () => weekDays.findIndex((day: Date) => isSameDay(day, today)),
-    [weekDays, today],
+    () => displayDays.findIndex((day: Date) => isSameDay(day, today)),
+    [displayDays, today],
   );
 
   const nowLinePercent: number | null = useMemo(() => {
@@ -173,6 +200,19 @@ export function WeekCalendar({
 
     return () => {
       clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    const mediaQuery: MediaQueryList = window.matchMedia(MOBILE_DAY_VIEW_QUERY);
+    const handleChange = (): void => {
+      setIsDayView(mediaQuery.matches);
+    };
+
+    handleChange();
+    mediaQuery.addEventListener("change", handleChange);
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
     };
   }, []);
 
@@ -220,11 +260,30 @@ export function WeekCalendar({
     spaceId !== null &&
     (onSlotSelect !== undefined || onEventSelect !== undefined);
 
-  const handleColumnClick = (
-    event: MouseEvent<HTMLDivElement>,
+  const handleColumnPointerDown = (
+    event: PointerEvent<HTMLElement>,
+  ): void => {
+    pointerStartRef.current = { x: event.clientX, y: event.clientY };
+  };
+
+  const handleColumnPointerUp = (
+    event: PointerEvent<HTMLDivElement>,
     day: Date,
   ): void => {
     if (!onSlotSelect) {
+      return;
+    }
+
+    const start: PointerPosition | null = pointerStartRef.current;
+    pointerStartRef.current = null;
+
+    if (!start) {
+      return;
+    }
+
+    const dx: number = event.clientX - start.x;
+    const dy: number = event.clientY - start.y;
+    if (Math.hypot(dx, dy) > TAP_MOVE_THRESHOLD_PX) {
       return;
     }
 
@@ -240,43 +299,60 @@ export function WeekCalendar({
     onSlotSelect(range);
   };
 
-  const handleEventClick = (
-    event: MouseEvent<HTMLButtonElement>,
+  const handleEventPointerUp = (
+    event: PointerEvent<HTMLButtonElement>,
     reservation: ReservationPublicResponse,
   ): void => {
+    const start: PointerPosition | null = pointerStartRef.current;
+    pointerStartRef.current = null;
+
+    if (start) {
+      const dx: number = event.clientX - start.x;
+      const dy: number = event.clientY - start.y;
+      if (Math.hypot(dx, dy) > TAP_MOVE_THRESHOLD_PX) {
+        return;
+      }
+    }
+
     event.stopPropagation();
     onEventSelect?.(reservation);
+
+    if (event.pointerType === "touch") {
+      event.currentTarget.blur();
+    }
   };
 
   return (
-    <div className="week-calendar">
+    <div className={`week-calendar${isDayView ? " week-calendar--day-view" : ""}`}>
       <header className="week-calendar__toolbar">
-        <div className="week-calendar__nav">
-          <button
-            type="button"
-            className="week-calendar__today-button"
-            onClick={goToToday}
-          >
-            {t("reservation.schedule.today")}
-          </button>
-          <button
-            type="button"
-            className="week-calendar__nav-button"
-            onClick={goToPreviousWeek}
-            aria-label={t("reservation.schedule.prevWeek")}
-          >
-            ‹
-          </button>
-          <button
-            type="button"
-            className="week-calendar__nav-button"
-            onClick={goToNextWeek}
-            aria-label={t("reservation.schedule.nextWeek")}
-          >
-            ›
-          </button>
-        </div>
-        <p className="week-calendar__range">{weekLabel}</p>
+        {!isDayView ? (
+          <div className="week-calendar__nav">
+            <button
+              type="button"
+              className="week-calendar__today-button"
+              onClick={goToToday}
+            >
+              {t("reservation.schedule.today")}
+            </button>
+            <button
+              type="button"
+              className="week-calendar__nav-button"
+              onClick={goToPreviousWeek}
+              aria-label={t("reservation.schedule.prevWeek")}
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              className="week-calendar__nav-button"
+              onClick={goToNextWeek}
+              aria-label={t("reservation.schedule.nextWeek")}
+            >
+              ›
+            </button>
+          </div>
+        ) : null}
+        <p className="week-calendar__range">{headerLabel}</p>
       </header>
 
       {errorKey ? (
@@ -291,7 +367,7 @@ export function WeekCalendar({
             <span className="week-calendar__timezone">{timezoneLabel}</span>
           </div>
 
-          {weekDays.map((day: Date) => {
+          {displayDays.map((day: Date) => {
             const isToday: boolean = isSameDay(day, today);
             const dayNumber: string = String(day.getDate());
 
@@ -328,7 +404,7 @@ export function WeekCalendar({
             <div
               className={`week-calendar__day-columns${showInitialLoad ? " week-calendar__day-columns--loading" : ""}${isInteractive ? " week-calendar__day-columns--interactive" : ""}`}
             >
-              {weekDays.map((day: Date, dayIndex: number) => {
+              {displayDays.map((day: Date, dayIndex: number) => {
                 const isToday: boolean = isSameDay(day, today);
                 const daySegments: CalendarEventSegment[] = eventSegments.filter(
                   (segment: CalendarEventSegment) => segment.dayIndex === dayIndex,
@@ -341,8 +417,9 @@ export function WeekCalendar({
                   <div
                     key={day.toISOString()}
                     className={`week-calendar__day-column${isToday ? " week-calendar__day-column--today" : ""}`}
-                    onClick={(event: MouseEvent<HTMLDivElement>) => {
-                      handleColumnClick(event, day);
+                    onPointerDown={handleColumnPointerDown}
+                    onPointerUp={(event: PointerEvent<HTMLDivElement>) => {
+                      handleColumnPointerUp(event, day);
                     }}
                   >
                     {isToday && nowLinePercent !== null ? (
@@ -372,8 +449,13 @@ export function WeekCalendar({
                             height: `${segment.heightPercent}%`,
                           }}
                           title={`${segment.reservation.user_name} · ${statusLabel} · ${formatTimeRange(segment.reservation.start_at, segment.reservation.end_at, locale)}`}
-                          onClick={(event: MouseEvent<HTMLButtonElement>) => {
-                            handleEventClick(event, segment.reservation);
+                          onPointerDown={(event: PointerEvent<HTMLButtonElement>) => {
+                            event.stopPropagation();
+                            handleColumnPointerDown(event);
+                          }}
+                          onPointerUp={(event: PointerEvent<HTMLButtonElement>) => {
+                            event.stopPropagation();
+                            handleEventPointerUp(event, segment.reservation);
                           }}
                         >
                           <span className="week-calendar__event-name">

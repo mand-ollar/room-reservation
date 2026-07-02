@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useAppLanguage } from "@/lib/locale";
@@ -44,6 +44,12 @@ const canHover = (): boolean =>
 
 const isTouchLikePointer = (pointerType: string): boolean =>
   pointerType === "touch" || pointerType === "pen";
+
+const blurIfTouchUp = (event: ReactPointerEvent<HTMLElement>): void => {
+  if (isTouchLikePointer(event.pointerType)) {
+    event.currentTarget.blur();
+  }
+};
 
 export function HeaderMenu() {
   const { t } = useTranslation();
@@ -147,6 +153,7 @@ export function HeaderMenu() {
         onClick={() => {
           toggleSubmenu(submenuId);
         }}
+        onPointerUp={blurIfTouchUp}
       >
         <span>{label}</span>
         <ChevronLeft />
@@ -163,7 +170,9 @@ export function HeaderMenu() {
               aria-checked={value === option.value}
               onClick={() => {
                 onSelect(option.value);
+                closeMenu();
               }}
+              onPointerUp={blurIfTouchUp}
             >
               <span>{option.label}</span>
               {value === option.value && <CheckIcon />}
@@ -184,6 +193,7 @@ export function HeaderMenu() {
         aria-haspopup="menu"
         aria-label={t("settings.menu")}
         onClick={handleToggle}
+        onPointerUp={blurIfTouchUp}
       >
         <svg viewBox="0 0 24 24" className="header-menu__trigger-icon" aria-hidden="true">
           <circle cx="12" cy="5" r="1.5" fill="currentColor" />

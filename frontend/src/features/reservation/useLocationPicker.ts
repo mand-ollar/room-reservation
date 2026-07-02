@@ -25,6 +25,8 @@ type UseLocationPickerResult = {
   selectSpace: (spaceId: string) => void;
   goToBuildings: () => void;
   goToFloors: () => void;
+  resetLocation: () => void;
+  clearSpace: () => void;
 };
 
 export function useLocationPicker(
@@ -157,6 +159,18 @@ export function useLocationPicker(
     setView("floors");
   };
 
+  const resetLocation = (): void => {
+    setSelectedBuildingId(null);
+    setSpaces([]);
+    setSelectedFloor(null);
+    clearSpaceSelection();
+    setView("buildings");
+  };
+
+  const clearSpace = (): void => {
+    clearSpaceSelection();
+  };
+
   return {
     buildings,
     spaces,
@@ -173,5 +187,7 @@ export function useLocationPicker(
     selectSpace,
     goToBuildings,
     goToFloors,
+    resetLocation,
+    clearSpace,
   };
 }

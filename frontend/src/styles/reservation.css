@@ -102,6 +102,68 @@
   flex: 1;
 }
 
+.location-picker__dropdowns {
+  display: none;
+}
+
+.location-picker__dropdown-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.location-picker__dropdown-label {
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.location-picker__dropdown-select {
+  width: 100%;
+  min-height: 2.25rem;
+  padding: var(--space-1) var(--space-5) var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f6368' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right var(--space-2) center / 0.875rem;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  line-height: 1.25;
+  appearance: none;
+  -webkit-appearance: none;
+  touch-action: manipulation;
+}
+
+.location-picker__dropdown-select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background-color: var(--color-surface-muted);
+}
+
+.location-picker__dropdown-select:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 1px;
+}
+
+.location-picker__dropdown-error {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-error);
+}
+
+.location-picker__drilldown {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-height: 0;
+  flex: 1;
+}
+
 .location-picker__header {
   display: flex;
   flex-direction: column;
@@ -126,8 +188,10 @@
   transition: color var(--transition-fast);
 }
 
-.location-picker__path-item:hover {
-  color: var(--color-primary);
+@media (hover: hover) and (pointer: fine) {
+  .location-picker__path-item:hover {
+    color: var(--color-primary);
+  }
 }
 
 .location-picker__path-separator {
@@ -194,7 +258,17 @@
   border-radius: var(--radius-sm);
 }
 
-.location-picker__item:hover {
+@media (hover: hover) and (pointer: fine) {
+  .location-picker__item:hover {
+    background: var(--color-surface-muted);
+  }
+
+  .location-picker__item--selected:hover {
+    background: var(--color-primary-subtle);
+  }
+}
+
+.location-picker__item:active {
   background: var(--color-surface-muted);
 }
 
@@ -203,7 +277,7 @@
   background: var(--color-primary-subtle);
 }
 
-.location-picker__item--selected:hover {
+.location-picker__item--selected:active {
   background: var(--color-primary-subtle);
 }
 
@@ -320,13 +394,20 @@
     color var(--transition-fast);
 }
 
-.week-calendar__nav-button:hover {
-  background: var(--color-control-bg);
-  color: var(--color-text-primary);
+@media (hover: hover) and (pointer: fine) {
+  .week-calendar__nav-button:hover {
+    background: var(--color-control-bg);
+    color: var(--color-text-primary);
+  }
+
+  .week-calendar__today-button:hover {
+    background: var(--color-surface-muted);
+  }
 }
 
-.week-calendar__today-button:hover {
-  background: var(--color-surface-muted);
+.week-calendar__nav-button:active,
+.week-calendar__today-button:active {
+  background: var(--color-control-bg);
 }
 
 .week-calendar__nav-button:focus-visible,
@@ -725,19 +806,29 @@
     color var(--transition-fast);
 }
 
-.event-dialog__icon-button:hover:not(:disabled) {
-  background: var(--color-control-bg);
-  color: var(--color-text-primary);
+@media (hover: hover) and (pointer: fine) {
+  .event-dialog__icon-button:hover:not(:disabled) {
+    background: var(--color-control-bg);
+    color: var(--color-text-primary);
+  }
+
+  .event-dialog__icon-button--danger:hover:not(:disabled) {
+    background: var(--color-error-subtle);
+    color: var(--color-error);
+  }
+
+  .event-dialog__submit:hover:not(:disabled) {
+    background: var(--color-primary-hover);
+  }
+
+  .booking-page__logout:hover {
+    background: var(--color-surface-muted);
+  }
 }
 
 .event-dialog__icon-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-.event-dialog__icon-button--danger:hover:not(:disabled) {
-  background: var(--color-error-subtle);
-  color: var(--color-error);
 }
 
 .event-dialog__icon {
@@ -887,10 +978,6 @@
   transition: background-color var(--transition-fast);
 }
 
-.event-dialog__submit:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-}
-
 .event-dialog__submit:disabled {
   opacity: 0.65;
   cursor: not-allowed;
@@ -934,7 +1021,7 @@
   transition: background-color var(--transition-fast);
 }
 
-.booking-page__logout:hover {
+.booking-page__logout:active {
   background: var(--color-surface-muted);
 }
 
@@ -948,4 +1035,117 @@
   padding: var(--space-4) var(--space-6);
   overflow: hidden;
   box-sizing: border-box;
+}
+
+/* Mobile */
+
+@media (max-width: 768px) {
+  .app-main:has(.reservation-page),
+  .app-main:has(.booking-page) {
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .reservation-page {
+    gap: var(--space-2);
+  }
+
+  .reservation-page__header {
+    display: none;
+  }
+
+  .reservation-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+
+  .reservation-layout__location-bar,
+  .reservation-layout__locations {
+    flex-shrink: 0;
+    min-height: 0;
+    padding: var(--space-2) 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  .reservation-layout__schedule {
+    padding: var(--space-3);
+    min-height: 0;
+  }
+
+  .location-picker {
+    gap: var(--space-2);
+    flex: none;
+  }
+
+  .location-picker__dropdowns {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
+  }
+
+  .location-picker__drilldown {
+    display: none;
+  }
+
+  .location-picker__dropdown-select {
+    min-height: 2rem;
+    padding-top: 0;
+    padding-bottom: 0;
+    font-size: var(--font-size-xs);
+  }
+
+  .week-calendar {
+    --calendar-hour-height: 2.75rem;
+    --calendar-time-gutter: 2.75rem;
+  }
+
+  .week-calendar--day-view .week-calendar__toolbar {
+    justify-content: center;
+  }
+
+  .week-calendar--day-view .week-calendar__range {
+    font-size: var(--font-size-md);
+    text-align: center;
+  }
+
+  .week-calendar--day-view .week-calendar__frame {
+    overflow-x: hidden;
+  }
+
+  .week-calendar--day-view .week-calendar__day-headers {
+    grid-template-columns: var(--calendar-time-gutter) minmax(0, 1fr);
+  }
+
+  .week-calendar--day-view .week-calendar__day-headers,
+  .week-calendar--day-view .week-calendar__grid-body {
+    min-width: 0;
+  }
+
+  .week-calendar--day-view .week-calendar__day-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .week-calendar__event {
+    min-height: 1.5rem;
+    padding: 2px var(--space-2);
+  }
+
+  .week-calendar__today-button,
+  .week-calendar__nav-button {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+
+  .event-dialog__panel {
+    width: min(28rem, calc(100vw - var(--space-6)));
+  }
+
+  .event-dialog__icon-button {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
 }

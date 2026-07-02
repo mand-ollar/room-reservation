@@ -28,6 +28,9 @@
       "floorLabel": "Floor {{floor}}",
       "spaceCount": "{{count}} spaces",
       "pathPlaceholder": "Choose a building to start",
+      "selectBuilding": "Select building",
+      "selectFloor": "Select floor",
+      "selectSpace": "Select space",
       "loading": "Loading…",
       "emptyBuildings": "No buildings registered.",
       "emptyFloors": "No spaces in this building.",
@@ -39,7 +42,7 @@
     },
     "schedule": {
       "title": "Reservations",
-      "selectSpace": "Select a space on the left.",
+      "selectSpace": "Select a space.",
       "loading": "Loading…",
       "today": "Today",
       "prevWeek": "Previous week",
