@@ -102,6 +102,13 @@
   font-variant-numeric: tabular-nums;
 }
 
+.auth-field__hint {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  line-height: 1.4;
+}
+
 .auth-form__error {
   margin: 0;
   padding: var(--space-3) var(--space-4);
@@ -109,6 +116,17 @@
   color: var(--color-error);
   background: var(--color-error-subtle);
   font-size: var(--font-size-sm);
+}
+
+.auth-form__success {
+  margin: 0;
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  color: var(--color-success);
+  background: var(--color-success-subtle);
+  font-size: var(--font-size-sm);
+  text-align: left;
 }
 
 .auth-button {

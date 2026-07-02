@@ -47,6 +47,18 @@
   color: var(--color-text-primary);
 }
 
+.home-hero__notice {
+  margin: var(--space-4) 0 0;
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-success);
+  background: var(--color-success-subtle);
+  border: 1px solid color-mix(in srgb, var(--color-success) 25%, transparent);
+  text-align: left;
+}
+
 .home-actions {
   display: flex;
   flex-direction: column;

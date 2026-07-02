@@ -15,7 +15,11 @@ from app.reservation.infrastructure.outbound.repositories.reservation.AlchemyRes
 from app.reservation.infrastructure.outbound.repositories.space.AlchemySpaceRepository import (
     AlchemySpaceRepository,
 )
+from app.user.application.outbound.repositories.AdminCredentialRepository import AdminCredentialRepository
 from app.user.application.outbound.repositories.UserRepository import UserRepository
+from app.user.infrastructure.outbound.repositories.admin_credential.AlchemyAdminCredentialRepository import (
+    AlchemyAdminCredentialRepository,
+)
 from app.user.infrastructure.outbound.repositories.user.AlchemyUserRepository import (
     AlchemyUserRepository,
 )
@@ -26,6 +30,12 @@ def get_user_repository(
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> UserRepository:
     return AlchemyUserRepository(session=session)
+
+
+def get_admin_credential_repository(
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> AdminCredentialRepository:
+    return AlchemyAdminCredentialRepository(session=session)
 
 
 def get_building_repository(

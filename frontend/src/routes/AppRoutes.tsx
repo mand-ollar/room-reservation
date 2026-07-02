@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import { AppShell } from "@/components/AppShell";
+import { AdminPasswordPage } from "@/features/admin/AdminPasswordPage";
 import { AdminPlaceholderPage } from "@/features/admin/AdminPlaceholderPage";
 import { AdminReservationsPage } from "@/features/admin/AdminReservationsPage";
 import { AdminRootPage } from "@/features/admin/AdminRootPage";
@@ -31,7 +32,7 @@ export function AppRoutes() {
             path={paths.adminPassword}
             element={
               <RequireAdmin>
-                <AdminPlaceholderPage titleKey="admin.entry.password" />
+                <AdminPasswordPage />
               </RequireAdmin>
             }
           />

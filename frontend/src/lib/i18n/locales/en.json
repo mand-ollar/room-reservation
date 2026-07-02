@@ -39,6 +39,25 @@
       "reservations": "Manage reservations",
       "password": "Admin password",
       "approvals": "Approve reservations"
+    },
+    "password": {
+      "title": "Admin password",
+      "description": "Verify your current password, then set a new one.",
+      "currentLabel": "Current password",
+      "newLabel": "New password",
+      "confirmLabel": "Confirm new password",
+      "requirements": "At least 8 characters and different from the current password.",
+      "submit": "Update password",
+      "submitting": "Working…",
+      "changedNotice": "Your password was updated.",
+      "errors": {
+        "required": "Please fill in all fields.",
+        "mismatch": "The new passwords do not match.",
+        "tooShort": "The new password must be at least {{minLength}} characters.",
+        "sameAsCurrent": "The new password must be different from the current password.",
+        "invalidCurrent": "The current password is incorrect.",
+        "genericError": "Could not update the password. Please try again."
+      }
     }
   },
   "reservation": {

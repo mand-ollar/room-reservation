@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 
 import { EntryCard } from "@/components/EntryCard";
 import {
@@ -7,8 +8,17 @@ import {
   paths,
 } from "@/lib/brand";
 
+type AdminHomeLocationState = {
+  passwordChanged?: boolean;
+};
+
 export function AdminHomePage() {
   const { t } = useTranslation();
+  const location = useLocation();
+  const locationState: AdminHomeLocationState | null =
+    (location.state as AdminHomeLocationState | null) ?? null;
+  const showPasswordChangedNotice: boolean =
+    locationState?.passwordChanged === true;
 
   return (
     <div className="home-page">
@@ -20,6 +30,11 @@ export function AdminHomePage() {
           </span>
         </h1>
         <p className="home-hero__subtitle">{t("app.subtitle")}</p>
+        {showPasswordChangedNotice ? (
+          <p className="home-hero__notice" role="status">
+            {t("admin.password.changedNotice")}
+          </p>
+        ) : null}
 
         <nav className="home-actions" aria-label={t("admin.actionsLabel")}>
           <EntryCard

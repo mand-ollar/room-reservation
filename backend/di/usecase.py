@@ -21,12 +21,15 @@ from app.reservation.application.use_cases.RejectReservation import RejectReserv
 from app.reservation.application.use_cases.RescheduleReservation import RescheduleReservationUseCase
 from app.reservation.application.use_cases.UpdateBuilding import UpdateBuildingUseCase
 from app.reservation.application.use_cases.UpdateSpace import UpdateSpaceUseCase
+from app.user.application.outbound.repositories.AdminCredentialRepository import AdminCredentialRepository
 from app.user.application.outbound.repositories.UserRepository import UserRepository
 from app.user.application.use_cases.AdminLogin import AdminLoginUseCase
+from app.user.application.use_cases.ChangeAdminPassword import ChangeAdminPasswordUseCase
 from app.user.application.use_cases.RefreshToken import RefreshTokenUseCase
 from app.user.application.use_cases.UserLogin import UserLoginUseCase
 from config import settings
 from di.repository import (
+    get_admin_credential_repository,
     get_building_repository,
     get_reservation_repository,
     get_space_repository,
@@ -40,8 +43,22 @@ def get_user_login_use_case(
     return UserLoginUseCase(user_repository=user_repository)
 
 
-def get_admin_login_use_case() -> AdminLoginUseCase:
-    return AdminLoginUseCase(admin_password=settings.admin_password)
+def get_admin_login_use_case(
+    admin_credential_repository: Annotated[AdminCredentialRepository, Depends(get_admin_credential_repository)],
+) -> AdminLoginUseCase:
+    return AdminLoginUseCase(
+        admin_credential_repository=admin_credential_repository,
+        bootstrap_password=settings.admin_password,
+    )
+
+
+def get_change_admin_password_use_case(
+    admin_credential_repository: Annotated[AdminCredentialRepository, Depends(get_admin_credential_repository)],
+) -> ChangeAdminPasswordUseCase:
+    return ChangeAdminPasswordUseCase(
+        admin_credential_repository=admin_credential_repository,
+        bootstrap_password=settings.admin_password,
+    )
 
 
 def get_refresh_token_use_case(

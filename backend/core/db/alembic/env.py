@@ -38,6 +38,9 @@ from app.reservation.infrastructure.outbound.repositories.space.SpaceAlchemyEnti
 from app.user.infrastructure.outbound.repositories.user.UserAlchemyEntity import (  # noqa: E402, F401
     UserAlchemyEntity,
 )
+from app.user.infrastructure.outbound.repositories.admin_credential.AdminCredentialAlchemyEntity import (  # noqa: E402, F401
+    AdminCredentialAlchemyEntity,
+)
 
 target_metadata = Base.metadata
 

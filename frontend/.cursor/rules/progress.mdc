@@ -31,7 +31,7 @@ alwaysApply: true
 | 관리자 인증 | 완료 | `/admin` 비밀번호 로그인·별도 토큰 저장·refresh 세션 복원. 로그인 후 `/`로 이동 |
 | 관리자 메뉴 | 완료 | 홈 스타일 3 entry cards (예약 관리·비밀번호 설정·예약 승인) |
 | 관리자 예약 관리 | 완료 | `/admin/reservations`. 사용자 예약 UI 재사용. 전체 하이라이트·수정·삭제 |
-| 관리자 비밀번호 설정 | 미구현 | placeholder |
+| 관리자 비밀번호 설정 | 완료 | 현재·새·확인 입력. scrypt 해시 DB 저장. 변경 후 관리자 메뉴(홈)로 이동 |
 | 관리자 예약 승인 | 미구현 | placeholder |
 
 ## Routes
@@ -43,7 +43,7 @@ alwaysApply: true
 | `/browse` | 예약 (조회·등록) | 장소 선택 + 주간 캘린더. 로그인 시 Welcome·로그아웃→홈 |
 | `/admin` | Admin login | 비밀번호 로그인. 성공 시 `/`로 이동 |
 | `/admin/reservations` | 예약 관리 | 캘린더 조회·전체 수정·삭제 |
-| `/admin/password` | 비밀번호 설정 | placeholder |
+| `/admin/password` | 비밀번호 설정 | 현재 비밀번호 확인 후 변경. 성공 시 관리자 메뉴(홈)로 이동 |
 | `/admin/approvals` | 예약 승인 | placeholder |
 
 ## 갱신 규칙
