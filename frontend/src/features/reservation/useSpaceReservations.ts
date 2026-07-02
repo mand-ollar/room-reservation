@@ -4,6 +4,9 @@ import { fetchReservationsBySpace } from "@/api/reservations";
 import { ApiError } from "@/api/client";
 import type { ReservationPublicResponse } from "@/api/types";
 
+const reservationsBySpaceId: Map<string, ReservationPublicResponse[]> =
+  new Map<string, ReservationPublicResponse[]>();
+
 type UseSpaceReservationsResult = {
   reservations: ReservationPublicResponse[];
   isLoading: boolean;
@@ -14,30 +17,40 @@ export function useSpaceReservations(
   spaceId: string | null,
 ): UseSpaceReservationsResult {
   const [reservations, setReservations] = useState<ReservationPublicResponse[]>(
-    [],
+    () => (spaceId ? (reservationsBySpaceId.get(spaceId) ?? []) : []),
   );
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(
+    () => (spaceId ? !reservationsBySpaceId.has(spaceId) : false),
+  );
   const [errorKey, setErrorKey] = useState<"loadReservations" | null>(null);
 
   useEffect(() => {
     if (!spaceId) {
-      setReservations([]);
-      setIsLoading(false);
-      setErrorKey(null);
       return;
     }
 
-    let active: boolean = true;
+    const cached: ReservationPublicResponse[] | undefined =
+      reservationsBySpaceId.get(spaceId);
 
-    setIsLoading(true);
-    setErrorKey(null);
+    if (cached) {
+      setReservations(cached);
+      setIsLoading(false);
+      setErrorKey(null);
+    } else {
+      setIsLoading(true);
+      setErrorKey(null);
+    }
+
+    let active: boolean = true;
 
     void fetchReservationsBySpace(spaceId)
       .then((data: ReservationPublicResponse[]) => {
         if (!active) {
           return;
         }
+        reservationsBySpaceId.set(spaceId, data);
         setReservations(data);
+        setErrorKey(null);
       })
       .catch((error: unknown) => {
         if (!active) {
@@ -57,6 +70,14 @@ export function useSpaceReservations(
       active = false;
     };
   }, [spaceId]);
+
+  if (!spaceId) {
+    return {
+      reservations: [],
+      isLoading: false,
+      errorKey: null,
+    };
+  }
 
   return { reservations, isLoading, errorKey };
 }

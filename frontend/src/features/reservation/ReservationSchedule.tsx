@@ -13,18 +13,16 @@ export function ReservationSchedule({
 }: ReservationScheduleProps) {
   const { t } = useTranslation();
 
-  if (!spaceId) {
-    return (
-      <div className="reservation-layout__placeholder">
-        <p className="reservation-layout__placeholder-text">
-          {t("reservation.schedule.selectSpace")}
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="reservation-schedule">
+      {!spaceId ? (
+        <div className="reservation-schedule__overlay">
+          <p className="reservation-layout__placeholder-text">
+            {t("reservation.schedule.selectSpace")}
+          </p>
+        </div>
+      ) : null}
+
       <WeekCalendar spaceId={spaceId} currentUserName={currentUserName} />
     </div>
   );

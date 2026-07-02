@@ -132,6 +132,10 @@ export function useLocationPicker(
   };
 
   const selectSpace = (spaceId: string): void => {
+    if (spaceId === selectedSpaceId) {
+      return;
+    }
+
     setSelectedSpaceId(spaceId);
     onSpaceSelect?.(spaceId);
   };

@@ -22,7 +22,7 @@ import {
 import { useSpaceReservations } from "./useSpaceReservations";
 
 type WeekCalendarProps = {
-  spaceId: string;
+  spaceId: string | null;
   currentUserName: string | null;
 };
 
@@ -40,6 +40,7 @@ export function WeekCalendar({ spaceId, currentUserName }: WeekCalendarProps) {
   const locale: string = useAppLocale();
   const { reservations, isLoading, errorKey } = useSpaceReservations(spaceId);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const hasScrolledInitiallyRef = useRef<boolean>(false);
 
   const [weekStart, setWeekStart] = useState<Date>(() => getWeekStart(new Date()));
   const [now, setNow] = useState<Date>(() => new Date());
@@ -119,7 +120,7 @@ export function WeekCalendar({ spaceId, currentUserName }: WeekCalendarProps) {
   }, []);
 
   useEffect(() => {
-    if (isLoading) {
+    if (hasScrolledInitiallyRef.current) {
       return;
     }
 
@@ -140,7 +141,8 @@ export function WeekCalendar({ spaceId, currentUserName }: WeekCalendarProps) {
       : 48;
 
     container.scrollTop = DEFAULT_SCROLL_HOUR * resolvedHourHeight;
-  }, [isLoading, spaceId]);
+    hasScrolledInitiallyRef.current = true;
+  }, []);
 
   const goToPreviousWeek = (): void => {
     setWeekStart((current: Date) => addWeeks(current, -1));
@@ -154,19 +156,8 @@ export function WeekCalendar({ spaceId, currentUserName }: WeekCalendarProps) {
     setWeekStart(getWeekStart(new Date()));
   };
 
-  if (isLoading) {
-    return (
-      <p className="week-calendar__status">{t("reservation.schedule.loading")}</p>
-    );
-  }
-
-  if (errorKey) {
-    return (
-      <p className="week-calendar__error" role="alert">
-        {t("reservation.schedule.errors.loadReservations")}
-      </p>
-    );
-  }
+  const showInitialLoad: boolean =
+    spaceId !== null && isLoading && reservations.length === 0;
 
   return (
     <div className="week-calendar">
@@ -199,6 +190,12 @@ export function WeekCalendar({ spaceId, currentUserName }: WeekCalendarProps) {
         <p className="week-calendar__range">{weekLabel}</p>
       </header>
 
+      {errorKey ? (
+        <p className="week-calendar__inline-error" role="alert">
+          {t("reservation.schedule.errors.loadReservations")}
+        </p>
+      ) : null}
+
       <div className="week-calendar__frame">
         <div className="week-calendar__day-headers">
           <div className="week-calendar__gutter-spacer">
@@ -225,6 +222,8 @@ export function WeekCalendar({ spaceId, currentUserName }: WeekCalendarProps) {
 
         <div ref={scrollRef} className="week-calendar__scroll">
           <div className="week-calendar__grid-body">
+            <div className="week-calendar__grid-lines" aria-hidden="true" />
+
             <div className="week-calendar__time-gutter" aria-hidden="true">
               {Array.from({ length: HOURS_PER_DAY }, (_value: unknown, hour: number) => (
                 <span
@@ -237,7 +236,9 @@ export function WeekCalendar({ spaceId, currentUserName }: WeekCalendarProps) {
               ))}
             </div>
 
-            <div className="week-calendar__day-columns">
+            <div
+              className={`week-calendar__day-columns${showInitialLoad ? " week-calendar__day-columns--loading" : ""}`}
+            >
               {weekDays.map((day: Date, dayIndex: number) => {
                 const isToday: boolean = isSameDay(day, today);
                 const daySegments: CalendarEventSegment[] = eventSegments.filter(
