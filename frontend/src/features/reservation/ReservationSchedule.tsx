@@ -192,7 +192,9 @@ export function ReservationSchedule({
         externalReservations={externalReservations}
         highlightAllAsOwn={isAdminMode}
         onSlotSelect={
-          spaceId && !isAdminMode ? handleSlotSelect : undefined
+          spaceId && !isAdminMode && user !== null
+            ? handleSlotSelect
+            : undefined
         }
         onEventSelect={spaceId ? handleEventSelect : undefined}
       />

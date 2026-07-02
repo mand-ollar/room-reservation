@@ -1016,13 +1016,6 @@
   color: var(--color-text-tertiary);
 }
 
-.event-dialog__login-prompt {
-  margin: 0;
-  padding: 0 var(--space-1);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-}
-
 .event-dialog__detail-text--memo {
   white-space: pre-wrap;
 }

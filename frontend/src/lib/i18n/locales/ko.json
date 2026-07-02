@@ -150,7 +150,6 @@
       "saving": "처리 중…",
       "close": "닫기",
       "cancelEdit": "취소",
-      "loginRequired": "예약하려면 로그인이 필요합니다.",
       "errors": {
         "required": "시작·종료 시간을 입력해 주세요.",
         "invalidRange": "종료 시간은 시작 시간보다 늦어야 합니다.",

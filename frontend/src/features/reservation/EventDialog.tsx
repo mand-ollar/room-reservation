@@ -8,8 +8,6 @@ import {
   type SyntheticEvent,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
-
 import {
   cancelReservation,
   createReservation,
@@ -17,7 +15,6 @@ import {
 } from "@/api/reservations";
 import { ApiError } from "@/api/client";
 import type { ReservationPublicResponse, ReservationStatus } from "@/api/types";
-import { paths } from "@/lib/brand";
 import { useAppLocale } from "@/lib/locale";
 import { getStoredAdminTokens } from "@/lib/auth/adminStorage";
 import { getStoredTokens } from "@/lib/auth/storage";
@@ -374,15 +371,6 @@ export function EventDialog({
             />
             <h2 className="event-dialog__detail-name">{formTitle}</h2>
           </div>
-
-          {isCreateMode && !isLoggedIn ? (
-            <p className="event-dialog__login-prompt">
-              {t("reservation.event.loginRequired")}{" "}
-              <Link className="text-link" to={paths.login}>
-                {t("home.entry.login")}
-              </Link>
-            </p>
-          ) : null}
 
           <div className="event-dialog__detail-rows">
             <div className="event-dialog__detail-row">

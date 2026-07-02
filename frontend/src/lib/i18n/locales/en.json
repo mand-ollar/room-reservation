@@ -150,7 +150,6 @@
       "saving": "Working…",
       "close": "Close",
       "cancelEdit": "Cancel",
-      "loginRequired": "Sign in to make a reservation.",
       "errors": {
         "required": "Please enter start and end times.",
         "invalidRange": "End time must be after start time.",
