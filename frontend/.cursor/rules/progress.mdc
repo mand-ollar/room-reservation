@@ -1,0 +1,44 @@
+---
+description: Frontend implementation progress and dev setup
+alwaysApply: true
+---
+
+# Frontend Progress
+
+`product.mdc`는 백엔드 중심 product spec. **프론트 구현 현황은 이 파일만** 갱신한다.
+
+## Dev setup
+
+- Stack: Vite 6, React 19, TypeScript, pnpm
+- `pnpm dev` — port `5173`, `--host` (LAN 접속)
+- `VITE_API_URL=/api` — dev server가 `/api` → backend `:8000` 프록시
+- 모바일: 맥과 **같은 Wi‑Fi/핫스팟** 필요. 공공 Wi‑Fi(client isolation)에서는 LAN 접속 불가.
+
+## 구현 상태
+
+| 영역 | 상태 | 비고 |
+|---|---|---|
+| 프로젝트 셋업 (Vite, ESLint, Prettier) | 완료 | |
+| i18n (ko / en) | 완료 | `react-i18next` |
+| 테마 (light / dark / system) | 완료 | CSS variables, localStorage |
+| API client + DTO types | 완료 | `src/api/`, fetch + `/api` proxy |
+| App shell + header settings menu | 완료 | Language / Theme cascade menu |
+| 홈 진입 화면 | 완료 | `HWAPYUNG ROOM RESERVATION`, 3 entry cards |
+| 라우팅 scaffold | 완료 | `/`, `/browse`, `/login`, `/admin` |
+| 공개 예약 조회 (`/browse`) | 미구현 | placeholder |
+| 사용자 로그인·예약 (`/login`) | 진행 중 | 로그인 UI·API 연동 완료 (`POST /auth/login`, JWT 저장·복원, 전화번호 `xxx-xxxx-xxxx` 자동 포맷). 예약 UI 미구현 |
+| 관리자 (`/admin`) | 미구현 | placeholder |
+
+## Routes
+
+| Path | 화면 | 상태 |
+|---|---|---|
+| `/` | Home — role entry | 완료 |
+| `/browse` | Public reservation browse | placeholder |
+| `/login` | User login + booking | 로그인 완료 (이름·전화번호, 자동 가입/로그인, 세션 유지). 예약 placeholder |
+| `/admin` | Admin login + management | placeholder |
+
+## 갱신 규칙
+
+- 화면/API 연동 완료 시 위 표의 **상태·비고**만 수정.
+- `product.mdc`의 `프론트엔드 | 미구현` 행은 **전체 UI 완료 시점**에 한 번 갱신.
