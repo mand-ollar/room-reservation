@@ -16,6 +16,25 @@
   "placeholder": {
     "comingSoon": "준비 중입니다."
   },
+  "auth": {
+    "login": {
+      "title": "로그인 · 예약하기",
+      "nameLabel": "이름",
+      "namePlaceholder": "홍길동",
+      "phoneLabel": "전화번호",
+      "phonePlaceholder": "010-0000-0000",
+      "submit": "시작하기",
+      "submitting": "처리 중…",
+      "loading": "세션 확인 중…",
+      "welcome": "{{name}}님, 환영합니다",
+      "logout": "로그아웃",
+      "errors": {
+        "required": "이름과 전화번호를 모두 입력해 주세요.",
+        "nameMismatch": "전화번호에 등록된 이름과 일치하지 않습니다.",
+        "genericError": "로그인에 실패했습니다. 다시 시도해 주세요."
+      }
+    }
+  },
   "settings": {
     "theme": "테마",
     "language": "언어",

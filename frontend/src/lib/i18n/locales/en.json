@@ -16,6 +16,25 @@
   "placeholder": {
     "comingSoon": "Coming soon."
   },
+  "auth": {
+    "login": {
+      "title": "Sign in to book",
+      "nameLabel": "Name",
+      "namePlaceholder": "Jane Doe",
+      "phoneLabel": "Phone number",
+      "phonePlaceholder": "010-0000-0000",
+      "submit": "Continue",
+      "submitting": "Working…",
+      "loading": "Checking session…",
+      "welcome": "Welcome, {{name}}",
+      "logout": "Sign out",
+      "errors": {
+        "required": "Please enter both your name and phone number.",
+        "nameMismatch": "The name does not match the one registered for this phone number.",
+        "genericError": "Sign-in failed. Please try again."
+      }
+    }
+  },
   "settings": {
     "theme": "Theme",
     "language": "Language",
