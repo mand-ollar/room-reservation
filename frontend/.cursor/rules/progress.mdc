@@ -23,7 +23,7 @@ alwaysApply: true
 | i18n (ko / en) | 완료 | `react-i18next` |
 | 테마 (light / dark / system) | 완료 | CSS variables, localStorage |
 | API client + DTO types | 완료 | `src/api/`, fetch + `/api` proxy |
-| App shell + header settings menu | 완료 | Language / Theme cascade menu. 터치 기기 인라인 서브메뉴 |
+| App shell + header settings menu | 완료 | Language / Theme cascade menu. 로그인 시 헤더 ⋮에 로그아웃(구분선, 전 페이지). 로그아웃 hover 시 열린 서브메뉴 닫힘. 터치 기기 인라인 서브메뉴 |
 | 홈 진입 화면 | 완료 | `HWAPYUNG ROOM RESERVATION`, 3 entry cards (예약·로그인·관리자). 로그인 시 Welcome + 로그인·관리자 버튼 숨김 |
 | 라우팅 scaffold | 완료 | `/`, `/browse`, `/login`, `/admin` |
 | 예약 (`/browse`) | 완료 | 조회·예약 통합. 장소 선택 + 주간 캘린더. 로그인 시 Welcome·로그아웃 툴바. 슬롯 클릭 등록·이벤트 클릭 상세, 미리보기 블록, 승인 상태 표시. PENDING/APPROVED만 표시. 헤더 월·년 표시(주 지배 월), 오늘·주 이동·날짜 점프. 모바일: dropdown + day view + 제목 표시 |
