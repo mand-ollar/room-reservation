@@ -315,11 +315,15 @@ export function EventDialog({
 
   const formStatus: ReservationStatus = reservation?.status ?? "PENDING";
 
-  const isCompactLayout: boolean = !isLoggedIn && !isAdminMode;
+  const isGuestCreateLayout: boolean = !isLoggedIn && !isAdminMode;
+  const isReadOnlyDetailLayout: boolean =
+    reservation !== null && !showForm && !canMutate;
+  const isCompactPanel: boolean =
+    isGuestCreateLayout || isReadOnlyDetailLayout;
   const panelClassName: string = [
     "event-dialog__panel",
     "event-dialog__panel--detail",
-    isCompactLayout ? "event-dialog__panel--compact" : "",
+    isCompactPanel ? "event-dialog__panel--compact" : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -334,7 +338,7 @@ export function EventDialog({
       {state && showForm ? (
         <form className={panelClassName} onSubmit={handleSubmit}>
           <header className="event-dialog__toolbar">
-            {!isCompactLayout ? (
+            {!isGuestCreateLayout ? (
               <div className="event-dialog__toolbar-actions">
                 {(isCreateMode ? isLoggedIn : canMutate) ? (
                   <button
@@ -441,11 +445,10 @@ export function EventDialog({
       {state && reservation && !showForm ? (
         <div className={panelClassName}>
           <header className="event-dialog__toolbar">
-            {!isCompactLayout ? (
+            {!isCompactPanel && canMutate ? (
               <div className="event-dialog__toolbar-actions">
-                {canMutate ? (
-                  <>
-                    <button
+                <>
+                  <button
                       type="button"
                       className="event-dialog__icon-button"
                       onClick={() => {
@@ -467,8 +470,7 @@ export function EventDialog({
                     >
                       <DeleteIcon />
                     </button>
-                  </>
-                ) : null}
+                </>
               </div>
             ) : null}
             <button
